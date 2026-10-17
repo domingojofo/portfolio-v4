@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="285" height="285" viewBox="0 0 285 285" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="frame">
+<path id="bottom-right" d="M282.5 218.5L282.5 282.5L218.5 282.5" stroke="#5580F6" stroke-width="5" stroke-linecap="round"/>
+<path id="button-left" d="M66.5 282.5L2.5 282.5L2.50001 218.5" stroke="#5580F6" stroke-width="5" stroke-linecap="round"/>
+<path id="top-left" d="M2.5 66.5V2.5H66.5" stroke="#5580F6" stroke-width="5" stroke-linecap="round"/>
+<path id="top-right" d="M218.5 2.5L282.5 2.5L282.5 66.5" stroke="#5580F6" stroke-width="5" stroke-linecap="round"/>
+</g>
+</svg>

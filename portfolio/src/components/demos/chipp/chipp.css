@@ -1,0 +1,80 @@
+/* Chipp panels. Positions are fractions of the Figma frames (1440×782 board, 581×292 photos,
+   859×625 guidelines, 1050×572 features) so everything scales with the panel width. */
+
+.chipp-card { position: relative; overflow: hidden; }
+
+/* ---------- Brand board ---------- */
+.chipp-hero {
+  aspect-ratio: 1440 / 782;
+  background: #F3EEE1;
+}
+.chipp-hero-art, .chipp-hero-art svg { display: block; width: 100%; height: 100%; }
+.chipp-float { position: absolute; height: auto; }
+.chipp-float--card    { left: calc(488 / 1440 * 100%); top: calc(439 / 782 * 100%); width: calc(320 / 1440 * 100%); }
+.chipp-float--buttons { left: calc(34 / 1440 * 100%);  top: calc(607 / 782 * 100%); width: calc(431 / 1440 * 100%); }
+
+/* Every animated layer scales/moves around its own centre */
+.chipp-hero :is(.c-st, .c-sw, .c-sq, .c-logo, .c-ui, .c-bd) { transform-box: fill-box; transform-origin: center; }
+.c-sq { --o: .2; }
+.c-sq[opacity=".1"] { --o: .1; }
+
+/* Held hidden once the SVG is in, until the panel reaches the middle of the screen */
+.chipp-hero.is-ready:not(.is-in) :is(.c-st, .c-sw, .c-sq, .c-logo, .c-ui, .c-bd) { opacity: 0; }
+.chipp-hero:not(.is-in) .chipp-float { opacity: 0; }
+
+.chipp-hero.is-in .c-sq   { animation: chipp-drift 1.6s var(--ease-out) calc(var(--i) * 120ms) both; }
+.chipp-hero.is-in .c-logo { animation: chipp-rise .7s var(--ease-out) .05s both; }
+.chipp-hero.is-in .c-sw   { animation: chipp-rise .8s var(--ease-out) calc(.15s + var(--i) * 90ms) both; --y: 28px; }
+.chipp-hero.is-in .c-ui   { animation: chipp-rise .7s var(--ease-out) calc(.4s + var(--i) * 80ms) both; }
+.chipp-hero.is-in .c-st   { animation: chipp-pop .55s var(--ease-pop) calc(.3s + var(--i) * 45ms) both; }
+.chipp-hero.is-in .c-bd   { animation: chipp-rise .9s var(--ease-out) .5s both; --y: 48px; }
+.chipp-hero.is-in .chipp-float--buttons { animation: chipp-rise .8s var(--ease-out) .85s both; }
+.chipp-hero.is-in .chipp-float--card    { animation: chipp-rise .8s var(--ease-out) .95s both; }
+
+/* ---------- Photos + guidelines row ---------- */
+.chipp-row {
+  display: grid;
+  grid-template-columns: 581fr 859fr;
+  gap: clamp(16px, 16px + (100vw - 1056px) / 60, 24px);   /* same as the Anchorage pair */
+}
+.chipp-stack { display: grid; gap: inherit; }
+.chipp-photo { aspect-ratio: 581 / 292; container-type: inline-size; }
+.chipp-photo > img { object-fit: cover; }
+.chipp-mascots {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: calc(40 / 581 * 100cqw);
+}
+.chipp-mascots img { display: block; height: auto; }
+.chipp-photo:not(.is-in) .chipp-mascots img { opacity: 0; }
+.chipp-photo.is-in .chipp-mascots img { animation: chipp-hop .6s var(--ease-pop) calc(.1s + var(--i) * 90ms) both; }
+
+.chipp-brand { background: #1E1E1E; }
+.chipp-brand img { object-fit: cover; }
+/* The guidelines settle in: a slow, slight zoom out */
+.chipp-brand img, .chipp-features img { transition: scale 1.4s var(--ease-out); }
+.chipp-brand:not(.is-in) img { scale: 1.06; }
+
+/* ---------- Feature board ---------- */
+.chipp-features img { display: block; width: 100%; height: auto; }
+.chipp-features:not(.is-in) img { scale: 1.04; }
+
+/* ---------- Motion ---------- */
+.chipp-card { --ease-out: cubic-bezier(.22, 1, .36, 1); --ease-pop: cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes chipp-rise  { from { opacity: 0; translate: 0 var(--y, 16px); } to { opacity: 1; translate: 0 0; } }
+@keyframes chipp-pop   { from { opacity: 0; scale: .6; rotate: -8deg; } to { opacity: 1; scale: 1; rotate: 0deg; } }
+@keyframes chipp-hop   { from { opacity: 0; translate: 0 30%; scale: .9; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes chipp-drift { from { opacity: 0; translate: -24px 12px; } to { opacity: var(--o); translate: 0 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .chipp-card *, .chipp-card { animation: none !important; transition: none !important; }
+  .chipp-card :is(.c-st, .c-sw, .c-logo, .c-ui, .c-bd, .chipp-float, .chipp-mascots img) { opacity: 1 !important; }
+  .chipp-card .c-sq { opacity: var(--o) !important; }
+  .chipp-card img { scale: 1 !important; }
+}
+
+/* Phones: everything stacks; the guidelines keep their Figma proportions */
+@media (max-width: 640px) {
+  .chipp-row { grid-template-columns: minmax(0, 1fr); }
+  .chipp-brand { aspect-ratio: 859 / 625; }
+}

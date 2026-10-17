@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero tunnel test</title>
+<style>
+  @font-face {
+    font-family: "Maragsa";
+    src: url("fonts/MaragsaDisplay-GO6PD.otf") format("opentype");
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Graphik";
+    src: url("fonts/Graphik-Regular-Trial.otf") format("opentype");
+    font-weight: 400;
+    font-display: block;
+  }
+
+  :root {
+    --stage: #E0E0DA;
+    --ink: #0F2132;
+    --hl: #FB7A21;
+    --gutter: 24px;
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: var(--stage); }
+  body { overflow-x: clip; }
+
+  .paper {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: .2;
+    mix-blend-mode: multiply;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    height: 100vh;
+    height: 100svh;
+    min-height: 560px;
+    overflow: hidden;
+  }
+
+  /* ---------- Tunnel ----------
+     Small, far-looking cards in the middle; tall, close cards at the sides.
+     Every card pivots on its bottom edge, so all bottoms land on one straight line
+     and the cards grow upward. Size + transform set per frame by JS. */
+  .tunnel { position: absolute; inset: 0; }
+  .card {
+    position: absolute;
+    left: 0; top: 0;
+    transform-origin: 50% 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #cfcfc8;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+
+  /* ---------- Copy ----------
+     Headline centred at the top (above the cards, in the clear space over the far wall);
+     bio centred at the bottom, under the baseline. */
+  .headline {
+    position: absolute;
+    top: 9%;
+    left: var(--gutter); right: var(--gutter);
+    z-index: 2;
+    text-align: center;
+    color: var(--ink);
+    font-family: "Maragsa", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(40px, 6.2vw, 112px);
+    line-height: .92;
+    letter-spacing: -0.025em;
+  }
+  .headline em { font-style: normal; color: var(--hl); }
+  .copy {
+    position: absolute;
+    left: var(--gutter); right: var(--gutter);
+    bottom: calc(var(--gutter) * 2);
+    display: flex;
+    justify-content: center;
+    color: var(--ink);
+  }
+  .bio {
+    max-width: 420px;
+    text-align: center;
+    font-family: "Graphik", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .bio .serif { font-family: "Maragsa", Georgia, serif; color: var(--hl); }
+
+  .logo { position: absolute; top: 22px; left: var(--gutter); line-height: 0; }
+  .logo svg { width: 32px; height: 14px; }
+
+  /* Word reveal: each word is masked by clip-path (not overflow, which would move the
+     inline-block's baseline) and drops in from just above its own box, small and centred,
+     then grows from its top centre into place. The mask reaches a little past the sides
+     and bottom so descenders and wide scramble glyphs aren't cut. */
+  .w { display: inline-block; clip-path: inset(-0.12em -0.3em -0.3em -0.3em); }
+  .w-in { display: inline-block; white-space: nowrap; transform-origin: 50% 0; will-change: transform; }
+  .scr { color: var(--hl); }
+  em .scr, .serif .scr { color: var(--ink); }
+  .pre { opacity: 0; }
+
+  @media (max-width: 720px) {
+    .bio { font-size: 14px; }
+  }
+
+  .design { padding: 160px var(--gutter) 200px; max-width: 1040px; margin: 0 auto; box-sizing: content-box; }
+  .design h2 { font-family: "Maragsa", Georgia, serif; font-weight: 400; font-size: clamp(32px, 4vw, 56px); line-height: 1.08; color: var(--ink); max-width: 720px; }
+</style>
+</head>
+<body>
+
+<div class="paper"></div>
+
+<section class="hero" aria-label="Relentlessly Collaborative">
+  <div class="tunnel" aria-hidden="true"></div>
+
+  <span class="logo pre">
+    <svg viewBox="0 0 32 14" fill="#F8651B" aria-hidden="true"><path d="M14.913 13.3913V0.608696C14.913 0.272522 14.6405 0 14.3043 0H8.52174C8.18557 0 7.91304 0.272523 7.91304 0.608697V10.3478C7.91304 10.684 7.64052 10.9565 7.30435 10.9565H7C6.66383 10.9565 6.3913 10.684 6.3913 10.3478V6.69565C6.3913 6.35948 6.11878 6.08696 5.78261 6.08696H0.608696C0.272522 6.08696 0 6.35948 0 6.69565V13.3913C0 13.7275 0.272522 14 0.608695 14H14.3043C14.6405 14 14.913 13.7275 14.913 13.3913Z"/><path d="M23.4346 14H17.9564C17.6202 14 17.3477 13.7275 17.3477 13.3913V0.608696C17.3477 0.272522 17.6202 0 17.9564 0H30.739C31.0751 0 31.3477 0.272523 31.3477 0.608696V2.73913C31.3477 3.0753 31.0751 3.34783 30.739 3.34783H24.9564C24.6202 3.34783 24.3477 3.62035 24.3477 3.95652C24.3477 4.2927 24.6202 4.56522 24.9564 4.56522H30.739C31.0751 4.56522 31.3477 4.83774 31.3477 5.17391V7.6087C31.3477 7.94487 31.0751 8.21739 30.739 8.21739H24.652C24.3158 8.21739 24.0433 8.48991 24.0433 8.82609V13.3913C24.0433 13.7275 23.7708 14 23.4346 14Z"/></svg>
+  </span>
+
+  <h1 class="headline" data-reveal>Relentlessly<br><em>Collaborative</em></h1>
+
+  <div class="copy">
+    <div class="bio" data-reveal>
+      <p>Hey! Kamusta? I’m <span class="serif">Jofo!</span> A hands-on product design leader, specializing in FinTech and AI-driven interfaces. Currently a staff product designer at Anchorage.</p>
+    </div>
+  </div>
+</section>
+
+<section class="design">
+  <h2>Impactful products crafted with care and collaboration</h2>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@12.23.12/dist/motion.js"></script>
+<script>
+/* ---------- Your work ----------
+   Swap these for your own images. `r` is the card's width / height, so mixed
+   aspect ratios are fine: every card still sits on the same bottom line. */
+const WORK = [
+  { src: 'https://picsum.photos/seed/jofo-01/800/1000', r: 0.8 },
+  { src: 'https://picsum.photos/seed/jofo-02/1000/800', r: 1.25 },
+  { src: 'https://picsum.photos/seed/jofo-03/900/900',  r: 1 },
+  { src: 'https://picsum.photos/seed/jofo-04/800/1100', r: 0.72 },
+  { src: 'https://picsum.photos/seed/jofo-05/1200/800', r: 1.5 },
+  { src: 'https://picsum.photos/seed/jofo-06/900/1000', r: 0.9 },
+  { src: 'https://picsum.photos/seed/jofo-07/1000/900', r: 1.1 },
+  { src: 'https://picsum.photos/seed/jofo-08/800/1000', r: 0.8 },
+  { src: 'images/design-placeholder.png',               r: 1.84 },
+  { src: 'https://picsum.photos/seed/jofo-10/900/900',  r: 1 },
+  { src: 'https://picsum.photos/seed/jofo-11/800/1000', r: 0.8 },
+  { src: 'https://picsum.photos/seed/jofo-12/1100/800', r: 1.35 },
+  { src: 'https://picsum.photos/seed/jofo-13/900/1100', r: 0.82 },
+  { src: 'https://picsum.photos/seed/jofo-14/1000/800', r: 1.25 },
+];
+
+(() => {
+  const hero   = document.querySelector('.hero');
+  const tunnel = hero.querySelector('.tunnel');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finalOnly = reduce || location.search.includes('final');
+
+  // ---------- Tunnel tuning ----------
+  const BASELINE  = 0.68;   // card bottoms, as a fraction of hero height
+  const VISIBLE   = 6.4;    // card heights from the centre to the screen edge (≈ how many cards per side)
+  const MAX_H     = 0.1;    // cap on the centre card's height, as a fraction of hero height
+  const GROW_H    = 4.6;    // extra height at the screen edge (×): the tall-sides "tunnel" look
+  const GROW_X    = 0.25;   // how much the spacing opens up towards the edges
+  const TILT      = 52;     // deg of rotateY at the screen edge
+  const GAP       = 0.08;   // gap between cards, in card heights
+  const SPEED     = 0.32;   // card heights per second
+  const INTRO_MS  = 2000;
+
+  // Positions along the wall are measured in card heights; a card's width is its ratio `r`
+  const lengthOf = list => list.reduce((s, it) => s + it.r + GAP, 0);
+  let cards = [], LOOP = 0;
+
+  function build(minLength) {
+    let items = [...WORK];
+    while (lengthOf(items) < minLength) items = items.concat(WORK);
+    if (items.length === cards.length) return;
+    tunnel.replaceChildren();
+    let acc = 0;
+    cards = items.map(it => {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `<img src="${it.src}" alt="" decoding="async">`;
+      tunnel.appendChild(el);
+      const c = { el, r: it.r, s0: acc + it.r / 2 };
+      acc += it.r + GAP;
+      return c;
+    });
+    LOOP = acc;
+  }
+
+  // The wall: t runs −1 … 1 across the screen (0 = centre). Spacing opens up a little towards
+  // the edges while heights grow a lot, and each card tilts its inner edge away — so the middle
+  // reads as far away and the sides as close. Every card pivots on its bottom edge, which
+  // keeps all the bottoms on the baseline.
+  let unit, by, halfW;   // unit = px per card height at the centre
+  const A = 1 / (1 + GROW_X);                      // so that x(1) = 1
+  const xOf  = t => A * (t + GROW_X * t * t * t);  // screen x, in half-widths
+  const dxOf = t => A * (1 + 3 * GROW_X * t * t);  // its slope = how wide cards are at t
+  const hOf  = t => 1 + GROW_H * t * t;
+
+  function layout() {
+    const W = hero.clientWidth, H = hero.clientHeight;
+    halfW = W / 2;
+    by = H * BASELINE;
+    unit = Math.min(halfW * A / VISIBLE, H * MAX_H);
+    build(2 * (VISIBLE * 1.25) + 4);               // enough cards to cover the screen, plus spares
+    for (const c of cards) c.el.style.top = '0';
+  }
+
+  // spread: 0 → cards bunched in the middle, 1 → full tunnel
+  // rise:   0 → flat on the baseline,        1 → full height
+  function render(offset, spread, rise) {
+    const span = VISIBLE / Math.max(spread, 0.001);   // card heights from centre to edge
+    for (const c of cards) {
+      let s = ((c.s0 - offset) % LOOP + LOOP) % LOOP;
+      if (s > LOOP / 2) s -= LOOP;                // −LOOP/2 … LOOP/2, 0 = dead centre
+      const t = s / span;
+      const at = Math.abs(t);
+      // fully off-screen once the card's inner edge passes the edge
+      if (at - (c.r / 2) / span > 1.04) { c.el.style.visibility = 'hidden'; continue; }
+      c.el.style.visibility = '';
+      const tc = Math.min(at, 1.3);
+      const th = -Math.sign(t) * TILT * Math.min(1, tc) * Math.PI / 180;
+      const wApp = c.r * unit * dxOf(tc) * spread + (1 - spread) * c.r * unit * 0.4;
+      const w = Math.max(1, wApp / Math.cos(th) - GAP * unit);
+      const h = unit * hOf(tc) * rise;
+      const x = halfW + Math.sign(t) * halfW * xOf(tc) * spread;
+      Object.assign(c.el.style, { width: w + 'px', height: h + 'px' });
+      c.el.style.transform =
+        `translate3d(${x - w / 2}px, ${by - h}px, 0) perspective(${w * 2.2}px) rotateY(${th}rad)`;
+    }
+  }
+
+  // ---------- Word reveal ----------
+  // Words come in one at a time: each drops in from above at a fraction of its size,
+  // holds, then jumps to full size while its letters scramble and lock in left to right.
+  // Motion (free, v12) drives the slide; the scramble is a small rAF loop on the same timeline.
+  const GLYPHS = 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz0123456789#*+=/<>?';   // mostly lowercase so widths stay close to the real word
+  const glyph = () => GLYPHS[Math.random() * GLYPHS.length | 0];
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  function splitWords(el) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n => {
+      const frag = document.createDocumentFragment();
+      n.textContent.split(/(\s+)/).forEach(part => {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+        const w = document.createElement('span');
+        w.className = 'w';
+        w.innerHTML = `<span class="w-in">${esc(part)}</span>`;
+        frag.appendChild(w);
+      });
+      n.replaceWith(frag);
+    });
+    return [...el.querySelectorAll('.w-in')];
+  }
+
+  // Letters keep flickering while the word creeps and while it's stuck, then lock in left to right
+  // during the snap. Times are in seconds from now.
+  function scramble(span, { start, creep, hold, snap }) {
+    const final = span.textContent, n = final.length;
+    span.style.width = span.offsetWidth + 'px';   // hold the final (unscaled) width so lines don't jump
+    const t0 = performance.now();
+    const snapAt = start + creep + hold, end = snapAt + snap;
+    let last = 0;
+    const render = locked => {
+      let tail = '';
+      for (let i = locked; i < n; i++) tail += /[\s’'.,!?-]/.test(final[i]) ? final[i] : glyph();
+      span.innerHTML = esc(final.slice(0, locked)) + (tail && `<span class="scr">${esc(tail)}</span>`);
+    };
+    (function frame(now) {
+      const t = (now - t0) / 1000;
+      if (t >= end) { span.textContent = final; span.style.width = ''; return; }
+      if (t >= snapAt) render(Math.floor(n * (t - snapAt) / snap));      // fast resolve
+      else if (now - last > 60) { last = now; render(0); }                 // ~16fps flicker
+      requestAnimationFrame(frame);
+    })(t0);
+  }
+
+  // Each word: drops in from right above (masked) at 20% size → holds there (still scrambling) → jumps to full size.
+  // With `stack`, a word on the next line rests tucked right under the previous small word, and gets
+  // shoved down into its own slot when that word jumps — and is forced to grow right after.
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const SMALL = 0.2;
+  const EASE_DROP = [0.3, 0, 0.6, 1], EASE_SNAP = [0.2, 0.9, 0.3, 1];
+  function revealWords(el, { delay = 0, each = 0.12, creep = 0.7, hold = 0.3, snap = 0.2, stack = false, recoil = 0.05 } = {}) {
+    const words = splitWords(el);
+    words.forEach(w => w.style.transform = `translateY(-120%) scale(${SMALL})`);   // parked above the mask
+    el.classList.remove('pre');
+    const { animate } = window.Motion;
+    let prevSnap = -Infinity;
+    words.forEach((w, i) => {
+      const start = delay + i * each, arrive = start + creep;
+      const h = Array.isArray(hold) ? rand(hold[0], hold[1]) : hold;   // a number, or a [min, max] range
+
+      // Where the small word rests: its own slot, or tucked under the previous small word
+      let rest = 0;
+      const box = w.parentNode.getBoundingClientRect();
+      const prev = i && words[i - 1].parentNode.getBoundingClientRect();
+      if (stack && prev && box.top > prev.bottom - 1) {
+        rest = prev.top + prev.height * SMALL - box.top;               // px, negative = above the slot
+        w.parentNode.style.clipPath = `inset(calc(${rest}px - 0.12em) -0.3em -0.3em -0.3em)`;   // open the mask up to it
+      }
+
+      let y, scale, at, ease, snapAt;
+      const enter = `${rest - box.height * 1.2}px`;                    // fully above the (opened) mask
+      if (rest) {
+        // drop → wait for the word above to jump → shoved down with it → grows almost straight away
+        // (`recoil` is the tiny beat between landing and growing, so it reads as a knock-on effect)
+        const push = Math.max(arrive, prevSnap);
+        snapAt = push + snap + recoil;
+        y       = [enter, `${rest}px`, `${rest}px`, '0px', '0px', '0px'];
+        scale   = [SMALL, SMALL, SMALL, SMALL, SMALL, 1];
+        at      = [start, arrive, push, push + snap, snapAt, snapAt + snap];
+        ease    = [EASE_DROP, 'linear', EASE_SNAP, 'linear', EASE_SNAP];
+      } else {
+        snapAt = arrive + h;
+        y       = [enter, '0px', '0px', '0px'];
+        scale   = [SMALL, SMALL, SMALL, 1];
+        at      = [start, arrive, snapAt, snapAt + snap];
+        ease    = [EASE_DROP, 'linear', EASE_SNAP];
+      }
+      const total = at[at.length - 1] - start;
+      animate(w, { y, scale }, {
+        delay: start, duration: total, times: at.map(t => (t - start) / total), ease,
+      });
+      scramble(w, { start, creep, hold: snapAt - arrive, snap });
+      prevSnap = snapAt;
+    });
+  }
+
+  // ---------- Run ----------
+  const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const easeOut = t => 1 - Math.pow(1 - t, 4);
+
+  let offset = 0, speed = SPEED, targetSpeed = SPEED, start = 0, last = 0;
+  let spread = finalOnly ? 1 : 0.06, rise = finalOnly ? 1 : 0.02;
+
+  function tick(now) {
+    if (!start) start = last = now;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!finalOnly) {
+      const k = Math.min(1, (now - start) / INTRO_MS);
+      rise   = 0.02 + 0.98 * easeOut(Math.min(1, k * 1.6));   // grow up off the baseline first…
+      spread = 0.06 + 0.94 * easeInOut(k);                    // …while the strip opens into the tunnel
+    }
+    speed += (targetSpeed - speed) * Math.min(1, dt * 3);
+    if (!reduce) offset += speed * dt;
+    render(offset, spread, rise);
+    requestAnimationFrame(tick);
+  }
+
+  // Ease the carousel down while hovering the cards
+  tunnel.addEventListener('pointerover', e => { if (e.target.closest('.card')) targetSpeed = SPEED * 0.25; });
+  tunnel.addEventListener('pointerout',  e => { if (e.target.closest('.card')) targetSpeed = SPEED; });
+
+  let raf;
+  addEventListener('resize', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(layout); });
+
+  const revealEls = [...document.querySelectorAll('[data-reveal]')];
+  const canReveal = !finalOnly && window.Motion;   // no Motion (offline CDN) → just show the text
+  if (canReveal) revealEls.forEach(el => el.classList.add('pre'));
+  else document.querySelector('.logo').classList.remove('pre');
+
+  Promise.all([
+    document.fonts.load('400 100px "Maragsa"'),
+    document.fonts.load('400 15px "Graphik"'),
+  ]).catch(() => {}).then(() => {
+    layout();
+    requestAnimationFrame(tick);
+    if (finalOnly) return;
+    const t = INTRO_MS * 0.55 / 1000;
+    if (canReveal) {
+      revealWords(revealEls[0], { delay: t,       each: 0.1,  creep: 0.8, hold: 0.3, snap: 0.18, stack: true });
+      revealWords(revealEls[1], { delay: t + 0.9, each: 0.03, creep: 0.6, hold: 0.3, snap: 0.15 });
+    }
+    setTimeout(() => document.querySelector('.logo').animate(
+      [{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: 'forwards' }
+    ), INTRO_MS);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+/* Banks hero animation card — portrait, same height as its neighbour in the row */
+.banks-card {
+  position: relative;
+  aspect-ratio: 420 / 630;
+  overflow: hidden;
+  background: #006aff;
+}
+.banks-card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.banks-card-stage {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  aspect-ratio: 505 / 347;
+  transform: translateY(-50%);
+}

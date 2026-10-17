@@ -1,0 +1,24 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Diamond mark &#226;&#128;&#148; dark tile">
+<rect x="0.0673684" y="0.0673684" width="15.8653" height="15.8653" rx="1.13263" fill="url(#paint0_linear_0_4)"/>
+<rect x="0.0673684" y="0.0673684" width="15.8653" height="15.8653" rx="1.13263" stroke="url(#paint1_linear_0_4)" stroke-width="0.134737"/>
+<path id="Top diamond" d="M5.64219 4.75792L7.83166 3.41055L10.0211 4.75792L7.83166 6.18949L5.64219 4.75792Z" fill="white"/>
+<path id="Left diamond" d="M2.44219 8.80001L4.63166 7.45264L6.82113 8.80001L4.63166 10.2316L2.44219 8.80001Z" fill="white"/>
+<path id="Right diamond" d="M8.84219 8.80001L11.0317 7.45264L13.2211 8.80001L11.0317 10.2316L8.84219 8.80001Z" fill="white"/>
+<path id="Bottom diamond" d="M5.64219 10.8211L7.83166 9.47373L10.0211 10.8211L7.83166 12.2527L5.64219 10.8211Z" fill="white"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_4" x1="1.62158" y1="12.8679" x2="13.0456" y2="1.76121" gradientUnits="userSpaceOnUse">
+<stop stop-color="#45474F"/>
+<stop offset="0.46" stop-color="#0A0E17"/>
+<stop offset="0.7" stop-color="#0B0F18"/>
+<stop offset="1" stop-color="#45474D"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_4" x1="8" y1="0" x2="8" y2="16" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="0.38" stop-color="#C7C9CF"/>
+<stop offset="0.8" stop-color="#212429"/>
+<stop offset="1"/>
+</linearGradient>
+</defs>
+</svg>

@@ -1,0 +1,160 @@
+/* =========================================================================
+   Virtual accounts charts — Anchorage web (Latitude dark), on a black stage
+   ========================================================================= */
+.va-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 7vw, 88px) clamp(12px, 5vw, 64px);
+  background: #6b7fb8;
+  color: #fff;
+  font-family: var(--td-font), Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.va-card p { margin: 0; }
+.va-card button { font: inherit; color: inherit; cursor: pointer; }
+
+.va-card-bg { object-fit: cover; image-rendering: pixelated; }
+.va-widget {
+  position: relative;
+  display: flex;
+  background: #161718;
+  box-shadow: 0 24px 64px rgb(10 14 40 / .35);
+  overflow: hidden;
+  border: 2px solid rgb(244 245 245 / .12);
+  border-radius: 8px;
+}
+.va-panel {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 252px;
+  box-sizing: border-box;
+}
+.va-panel-balance { padding: 12px 8px 16px 12px; }   /* 8 + the graph's 4pt left inset */
+.va-panel-tx { padding: 12px 12px 16px 8px; }
+
+/* ---------- Legend row ---------- */
+.va-legend { position: relative; display: flex; align-items: center; height: 24px; }
+.va-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cacbce;
+  font-size: 14px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.va-legend-tx .va-title { gap: 6px; font-weight: 500; }
+.va-period {
+  align-self: flex-end;
+  color: #aaacb1;
+  font-size: 12px;
+  line-height: 24px;               /* sits on the key line under the totals */
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Range menu ---------- */
+.va-menu { position: absolute; z-index: 2; right: 0; top: 0; }   /* floats; the headline sits right under the title */
+.va-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(244 245 245 / .12);
+  color: #aaacb1 !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+  transition: background-color .15s, color .15s;
+}
+.va-range:hover, .va-range[aria-expanded="true"] { background: rgb(244 245 245 / .18); color: #fff !important; }
+.va-options {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 112px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid rgb(244 245 245 / .12);
+  border-radius: 8px;
+  background: #161718;
+  box-shadow: 0 8px 24px rgb(0 0 0 / .5);
+}
+.va-options button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-size: 13px !important;
+  line-height: 20px;
+  text-align: left;
+}
+.va-options button:hover { background: rgb(244 245 245 / .08); }
+.va-options [aria-selected="true"] button { font-weight: 700 !important; }
+
+/* ---------- Headline numbers ---------- */
+.va-header { padding-right: 80px; }   /* clear of the range menu */
+.va-value { display: flex; align-items: flex-start; gap: 4px; font-weight: 500; white-space: nowrap; }
+.va-unit { font-size: 18px; line-height: 24px; }
+.va-big { font-weight: 500; font-size: 28px; line-height: 40px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.va-sub {
+  margin-top: 4px !important;
+  color: #aaacb1;
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.va-totals { display: flex; gap: 16px; height: 64px; }
+.va-key { display: flex; align-items: center; gap: 4px; color: #cacbce; font-size: 14px; line-height: 24px; white-space: nowrap; }
+.va-key span { width: 8px; height: 2px; border-radius: 1px; }
+
+/* ---------- Plot ---------- */
+.va-plot {
+  position: relative;
+  margin-top: auto;
+  height: 132px;
+  cursor: crosshair;
+  touch-action: pan-y;             /* sideways drags scrub, vertical drags still scroll */
+  outline: none;
+}
+.va-plot:focus-visible { box-shadow: 0 0 0 2px rgb(85 128 246 / .8); border-radius: 4px; }
+.va-svg { display: block; overflow: visible; }
+.va-grid { stroke: #f4f5f5; stroke-opacity: .06; stroke-dasharray: 2 2; }
+.va-dim { fill: #161718; fill-opacity: .7; }   /* the panel surface, so it fades rather than boxes */
+.va-hairline { stroke: #f4f5f5; stroke-opacity: .35; stroke-width: 1; }
+.va-dot { stroke: #161718; stroke-width: 2; }       /* surface ring so the dot lifts off the line */
+.va-pulse { transform-box: fill-box; transform-origin: center; animation: va-pulse 2s ease-out infinite; }
+@keyframes va-pulse {
+  from { transform: scale(1); opacity: .6; }
+  to { transform: scale(3.2); opacity: 0; }
+}
+
+.va-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .va-widget { flex-direction: column; }
+  .va-panel-tx { border-top: 2px solid rgb(244 245 245 / .12); padding-left: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .va-pulse { animation: none; opacity: 0; }
+}

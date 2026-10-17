@@ -1,0 +1,614 @@
+/* =========================================================================
+   Trusted destinations — interactive iOS card in the Design section.
+   Everything inside .td-phone is in iPhone points (375×812 screen) and scaled as a whole.
+   ========================================================================= */
+.td-card {
+  position: relative;
+  aspect-ratio: 3126 / 2082;
+  overflow: hidden;
+  background: #3d6fb8;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout paint;           /* zooms and overlays never repaint the page around it */
+  container-type: size;            /* the phone is placed in card-height units (cqh) */
+}
+.td-card-bg { object-fit: cover; }
+
+.td-card button { font: inherit; color: inherit; cursor: pointer; }
+.td-card p { margin: 0; }
+
+/* ---------- Theme tokens (Latitude dark, and its light counterpart) ---------- */
+.td-phone {
+  --td-bg: #000;
+  --td-text: #fff;
+  --td-muted: #aaacb1;
+  --td-subtle: #a2a4a9;
+  --td-divider: rgb(255 255 255 / .1);
+  --td-track: rgb(244 245 245 / .04);
+  --td-fill: rgb(244 245 245 / .1);
+  --td-selected: #fff;
+  --td-on-selected: #000;
+  --td-field: rgb(244 245 245 / .08);
+  --td-card: rgb(244 245 245 / .08);
+  --td-card-shadow: 2px 2px 2px rgb(22 23 24 / .08), 4px 4px 4px rgb(22 23 24 / .08), 4px 8px 8px rgb(22 23 24 / .16), -2px 8px 16px rgb(22 23 24 / .08);
+  --td-drawer: #161718;
+  --td-handle: rgb(228 229 231 / .08);
+  --td-backdrop: rgb(244 245 245 / .24);
+  --td-home: #fff;
+}
+.td-phone[data-theme="light"] {
+  --td-bg: #f4f5f5;
+  --td-text: #161718;
+  --td-muted: #6b6e75;
+  --td-subtle: #6b6e75;
+  --td-divider: rgb(22 23 24 / .1);
+  --td-track: rgb(22 23 24 / .04);
+  --td-fill: rgb(22 23 24 / .07);
+  --td-selected: #161718;
+  --td-on-selected: #fff;
+  --td-field: rgb(22 23 24 / .06);
+  --td-card: #fff;
+  --td-card-shadow: 0 1px 2px rgb(22 23 24 / .06), 0 4px 12px rgb(22 23 24 / .05);
+  --td-drawer: #fff;
+  --td-handle: rgb(22 23 24 / .12);
+  --td-backdrop: rgb(22 23 24 / .24);
+  --td-home: #000;
+}
+
+/* ---------- Phone ---------- */
+.td-phone {
+  position: absolute;
+  /* The photo's phone sits a hair left of centre (49.75% of the 3:2 image). The image always
+     fills the card's height, so that offset is 0.375% of the card height at any card shape. */
+  left: calc(50% - .375cqh);
+  top: 15.4%;
+  width: 410.26px;                 /* iPhone 17 mockup: 1280×2642px at 3× */
+  height: 846.79px;
+  transform-origin: top center;
+  transform: translateX(-50%) scale(var(--td-scale, 0));
+  border-radius: 67.3px;
+  background: #000;
+  box-shadow: 0 40px 80px rgb(0 0 0 / .28);
+  font-family: var(--td-font), Inter, system-ui, sans-serif;
+  color: var(--td-text);
+  -webkit-font-smoothing: antialiased;
+}
+/* Titanium edge, four stacked rings as in the mockup (values in points) */
+.td-edge { position: absolute; border-style: solid; pointer-events: none; }
+.td-edge-dark { inset: 0; border-width: 1.6px; border-color: #9d9d9d; border-radius: 67.3px; }
+.td-edge-primary { inset: 1.6px; border-width: 4.17px; border-color: #f7f7f7; border-radius: 65.7px; }
+.td-edge-highlight { inset: 1.92px 1.6px 1.6px; border-width: 1.6px; border-color: #dfdedb; border-radius: 66px; filter: blur(.48px); }
+.td-edge-reflect { inset: 7.37px; border-width: .64px; border-color: #646464; border-radius: 59.9px; opacity: .8; filter: blur(.32px); }
+.td-antenna { position: absolute; background: #ededed; opacity: .3; mix-blend-mode: screen; }
+
+/* Dynamic Island: drawn at 3× pixel size and scaled to points */
+.td-island {
+  position: absolute;
+  z-index: 11;
+  left: 50%;
+  top: 30.45px;
+  width: 370px;
+  height: 108px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #000;
+  transform: translateX(-50%) scale(.32051);
+  transform-origin: top center;
+  pointer-events: none;
+}
+.td-lens { position: absolute; border-radius: 50%; }
+.td-lens-1 { left: 270px; top: 28px; width: 52px; height: 52px; box-sizing: border-box; border: 2px solid #0e0e0e; background: #121212; opacity: .75; }
+.td-lens-2 { left: 18px; top: 18px; width: 72px; height: 72px; background: #141414; opacity: .4; transform: scaleX(-1); }
+.td-lens-core { position: absolute; left: 12.6px; top: 12.6px; width: 46.8px; height: 46.8px; border-radius: 50%; background: #000; }
+.td-glint { position: absolute; }
+.td-glint.is-flipped { transform: scaleX(-1); }
+.td-glint img { position: absolute; left: -75%; top: -25%; width: 250%; height: 150%; max-width: none; }
+
+.td-screen {
+  position: absolute;
+  inset: 17.63px;                  /* 55px bezel at 3× */
+  overflow: hidden;
+  border-radius: 52.9px;
+  background: var(--td-bg);
+  isolation: isolate;
+}
+.td-home {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: 8px;
+  width: 133px;
+  height: 5px;
+  margin-left: -66.5px;
+  border-radius: 3px;
+  background: var(--td-home);
+  pointer-events: none;
+  transition: background .2s;
+}
+.td-screen[data-step="sheet"] .td-home { background: #000; }
+.td-screen[data-step="scanner"] .td-home { background: #fff; }
+
+/* ---------- Status + navigation bars ---------- */
+.td-status { position: relative; height: 44px; background: var(--td-bg); }
+.td-status-time {
+  position: absolute;
+  left: 45.5px;
+  top: 13px;
+  transform: translateX(-50%);
+  font: 600 14px/normal -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+.td-status img, .td-status span { position: absolute; display: block; }
+.td-status-signal { right: 65.5px; top: 17px; width: 14.5px; height: 9.5px; }
+.td-status-wifi { right: 46.5px; top: 17px; width: 13px; height: 9px; }
+.td-status-battery { right: 16.5px; top: 18px; width: 23.501px; height: 9px; }
+.td-status-battery img { left: -4.26%; top: -11.11%; width: 104.26%; height: 122.22%; }
+
+.td-nav { position: relative; height: 44px; background: var(--td-bg); }
+.td-nav-title {
+  position: absolute;
+  left: calc(50% - .5px);
+  top: calc(50% - 10px);
+  width: 244px;
+  transform: translateX(-50%);
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: center;
+}
+.td-nav-leading, .td-nav-trailing { position: absolute; top: 10px; width: 24px; height: 24px; }
+.td-nav-leading { left: 16px; }
+.td-nav-trailing { right: 16px; }
+button.td-nav-trailing { padding: 0; border: 0; background: none; }
+button.td-nav-trailing img { display: block; width: 24px; height: 24px; }
+.td-divider { height: 1px; background: var(--td-divider); }
+
+/* ---------- Trusted destinations list ---------- */
+.td-list { position: absolute; inset: 0; background: var(--td-bg); }
+.td-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 8px 0;
+}
+.td-toggle {
+  display: flex;
+  gap: 4px;
+  width: 241px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--td-track);
+}
+.td-toggle-btn {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--td-fill);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 24px;
+  text-align: center;
+}
+.td-toggle-btn.is-selected { background: var(--td-selected); color: var(--td-on-selected); }
+
+.td-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 56px;
+  margin-bottom: 4px;              /* empty help-text row */
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--td-field);
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+.td-list, .td-status, .td-nav, .td-fixed, .td-drawer, .td-dest, .td-search, .td-toggle-btn, .td-btn-neutral {
+  transition: background-color .3s, color .3s, border-color .15s, filter .15s, transform .15s;
+}
+.td-search:focus-within { border-color: rgb(85 128 246 / .7); }
+.td-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--td-text);
+  font: 500 18px/24px var(--td-font), Inter, system-ui, sans-serif;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.td-search input::placeholder { color: var(--td-muted); }
+.td-search input::-webkit-search-cancel-button { display: none; }
+.td-search img { width: 32px; height: 32px; }
+
+.td-subheader {
+  align-self: stretch;
+  padding-left: 8px;
+  color: var(--td-subtle);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+}
+.td-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-self: stretch;
+  margin: -8px 0 0;                /* cards start 24pt below the sub header's top */
+  padding: 0;
+  list-style: none;
+}
+.td-dest {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--td-card);
+  box-shadow: var(--td-card-shadow);
+}
+.td-dest-name { font-weight: 700; font-size: 14px; line-height: 24px; }
+.td-dest-meta { color: var(--td-muted); font-weight: 500; font-size: 12px; line-height: 16px; }
+.td-dest-meta b { font-weight: 700; }
+
+.td-fixed {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 375px;
+  padding: 16px 24px 40px;
+  box-sizing: border-box;
+  background: var(--td-bg);
+}
+
+/* ---------- Buttons ---------- */
+.td-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  line-height: 24px !important;
+  transition: filter .15s, transform .15s;
+}
+.td-btn:active { transform: scale(.98); filter: brightness(.9); }
+.td-btn-primary { background: #5580f6; color: #fff; }
+.td-btn-neutral { background: var(--td-fill); color: var(--td-text); }
+.td-btn-text { padding: 0 8px; }
+.td-btn:focus-visible { outline: 2px solid var(--td-text); outline-offset: 2px; }
+.td-card-ui button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---------- Drawer ---------- */
+.td-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: var(--td-backdrop);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: default !important;
+}
+.td-drawer {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  bottom: 0;
+  width: 375px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+  background: var(--td-drawer);
+  box-shadow: 0 -4px 16px rgb(22 23 24 / .32), 0 8px 16px rgb(22 23 24 / .16);
+  touch-action: none;
+}
+.td-drawer-header { display: flex; justify-content: center; padding: 10px 16px; }
+.td-drawer-handle { width: 32px; height: 4px; border-radius: 100px; background: var(--td-handle); }
+.td-drawer-body { display: flex; flex-direction: column; padding: 16px; }
+.td-drawer-body.is-intro { gap: 24px; }
+.td-drawer-body.is-share { height: 432px; box-sizing: border-box; }
+.td-drawer-body.is-share .td-page { flex: 1; justify-content: center; gap: 0; }
+.td-drawer-home { height: 20px; flex: none; }   /* the screen-level home indicator sits here */
+
+.td-page { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.td-page-title { font-weight: 500; font-size: 16px; line-height: 24px; }
+.td-page-desc { color: var(--td-muted); font-size: 14px; line-height: 24px; }
+.td-page-desc b { font-weight: 700; }
+.td-stack { display: flex; flex-direction: column; gap: 12px; }
+
+.td-illu { position: relative; flex: none; width: 100%; height: 154px; overflow: hidden; }
+.td-illu-layer { position: absolute; overflow: hidden; }
+.td-illu-part { position: absolute; }
+.td-illu-part img { display: block; width: 100%; height: 100%; max-width: none; }
+
+/* ---------- Share sheet ---------- */
+.td-sheet-dim { position: absolute; inset: 0; z-index: 3; background: rgb(0 0 0 / .32); }
+.td-sheet-wrap { position: absolute; z-index: 4; left: 0; right: 0; top: 321px; bottom: 0; touch-action: none; }
+.td-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 9.615px 9.615px 0 0;
+  background: #f6f6f5;
+  color: #000;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+.td-sheet-header {
+  position: relative;
+  flex: none;
+  height: 96.154px;
+  background: rgb(246 246 245 / .9);
+}
+.td-sheet-logo { position: absolute; left: 18.27px; top: 12.5px; width: 51.923px; height: 51.923px; }
+.td-sheet-title {
+  position: absolute;
+  left: 81.73px;
+  top: 12.5px;
+  font-weight: 600;
+  font-size: 12.944px;
+  letter-spacing: -.6472px;
+  white-space: nowrap;
+}
+.td-sheet-url {
+  position: absolute;
+  left: 81.73px;
+  top: 29.81px;
+  width: 214.423px;
+  color: #aaacb1;
+  font-size: 12.019px;
+  letter-spacing: -.6472px;
+}
+.td-sheet-options {
+  position: absolute;
+  left: 81.73px;
+  top: 50.96px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6.731px 10.577px;
+  border: .962px solid #dcdcde;
+  border-radius: 7.692px;
+  font-size: 12.5px;
+  line-height: 17.308px;
+}
+.td-sheet-dismiss {
+  position: absolute;
+  right: 12.5px;
+  top: 13.46px;
+  width: 28.846px;
+  height: 28.846px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.td-sheet-dismiss img { display: block; width: 100%; height: 100%; }
+.td-sheet-divider { position: absolute; left: 0; bottom: 0; width: 375px; height: .385px; }
+.td-sheet-divider-row { display: block; width: 375px; height: .385px; }
+
+.td-sheet-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.td-sheet-scroll::-webkit-scrollbar, .td-sheet-row::-webkit-scrollbar { display: none; }
+.td-sheet-row { display: flex; gap: 17.308px; overflow-x: auto; scrollbar-width: none; }
+.td-sheet-contacts { padding: 19.231px 10.577px 18.269px; }
+.td-sheet-apps { padding: 21.154px 10.577px 19.231px; align-items: flex-start; }
+.td-sheet-row button { position: relative; flex: none; width: 69.231px; padding: 0; border: 0; background: none; }
+.td-contact { height: 89.423px; }
+.td-app { height: 86.538px; }
+.td-contact-photo { position: absolute; left: 4.81px; top: 0; width: 59.615px; height: 59.615px; }
+.td-contact-photo img { position: absolute; left: -51.61%; top: -51.61%; width: 203.22%; height: 203.22%; max-width: none; }
+.td-contact-app { position: absolute; left: 47.12px; top: 42.31px; width: 19.231px; height: 19.231px; border-radius: 5px; object-fit: cover; }
+.td-app-icon {
+  position: absolute;
+  left: 5.77px;
+  top: 0;
+  width: 57.692px;
+  height: 57.692px;
+  border-radius: 13px;
+  opacity: .9;
+  object-fit: cover;
+  box-shadow: 0 0 30.769px rgb(0 0 0 / .1);
+}
+.td-sheet-label {
+  position: absolute;
+  left: 0;
+  width: 69.231px;
+  font-family: var(--td-font), Inter, system-ui, sans-serif;
+  font-size: 10.58px;
+  text-align: center;
+  color: #000;
+}
+.td-contact .td-sheet-label { top: 64.42px; }
+.td-app .td-sheet-label { top: 61.54px; }
+
+.td-sheet-groups { display: flex; flex-direction: column; gap: 11.538px; padding: 0 15.385px 40px; }
+.td-sheet-group { border-radius: 9.615px; background: #fff; filter: drop-shadow(0 1.923px 12.019px rgb(0 0 0 / .05)); }
+.td-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 48.077px;
+  padding: 0 11px 0 15.38px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font-size: 16.35px !important;
+  letter-spacing: -.7px;
+  text-align: left;
+}
+.td-cell:active, .td-sheet-row button:active { opacity: .6; }
+.td-cell-divider { position: absolute; left: 0; bottom: 0; width: 100%; height: .385px; }
+
+/* ---------- QR scanner ---------- */
+.td-scanner { position: absolute; inset: 0; z-index: 5; overflow: hidden; background: #fff; color: #fff; --td-bg: #000; }
+.td-scanner-camera { position: absolute; inset: 0; background: rgb(0 0 0 / .5); }
+.td-scanner-camera::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 88px;
+  width: 375px;
+  height: 700px;
+  background: linear-gradient(to bottom, rgb(0 0 0 / .3), rgb(255 255 255 / .11) 35%, rgb(0 0 0 / .11));
+}
+.td-scanner-top { position: relative; }
+.td-nav-scanner { box-shadow: inset 0 -1px rgb(244 245 245 / .2); }
+.td-scanner-target {
+  position: absolute;
+  left: 47.5px;
+  top: 216px;
+  width: 280px;
+  height: 280px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.td-scanner-frame { position: absolute; left: -.89%; top: -.89%; width: 101.78%; height: 101.78%; }
+.td-scanner-qr { position: absolute; left: 35.5px; top: 44px; width: 206.8px; height: 204.7px; }
+.td-scanner-line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  border-radius: 2px;
+  background: #5580f6;
+  box-shadow: 0 0 12px 2px rgb(85 128 246 / .7);
+}
+.td-scanner-card {
+  position: absolute;
+  left: 16px;
+  top: 544px;
+  width: 343px;
+  height: 176px;
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: #000;
+  text-align: center;
+}
+.td-scanner-title { font-weight: 700; font-size: 24px; line-height: 36px; }
+.td-scanner-desc { font-weight: 500; font-size: 14px; line-height: 24px; }
+.td-scanner-more {
+  width: 311px;
+  height: 48px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #222325;
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  line-height: 32px !important;
+}
+
+/* ---------- Demo camera, vignette and fingertip ---------- */
+/* Scaling from the card's bottom edge: the photo still fills the frame, the phone's top half
+   slides up out of view and a little room stays under the phone */
+.td-camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  transition: transform .9s cubic-bezier(.32, .72, 0, 1);
+}
+.td-camera[data-focus="true"] { transform: scale(1.55); }
+.td-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / .6), rgb(0 0 0 / .25) 30%, transparent 50%);
+  opacity: 0;
+  transition: opacity .9s cubic-bezier(.32, .72, 0, 1);
+}
+.td-vignette[data-on="true"] { opacity: 1; }
+.td-finger {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgb(255 255 255 / .9);
+  border-radius: 50%;
+  background: rgb(255 255 255 / .28);
+  box-shadow: 0 4px 16px rgb(0 0 0 / .35);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.td-finger::after {               /* tap ripple */
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  opacity: 0;
+}
+.td-finger.is-tapping::after { animation: td-ripple .55s ease-out; }
+@keyframes td-ripple {
+  from { transform: scale(.8); opacity: .9; }
+  to { transform: scale(2); opacity: 0; }
+}
+
+/* ---------- Card chrome (unscaled) ---------- */
+.td-card-ui {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  justify-content: space-between;  /* hint/restart left, appearance switch (when shown) right */
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.td-card .td-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / .82);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--ink, #1d344a);
+  font-family: var(--sans) !important;
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+.td-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hl);
+  animation: td-pulse 1.6s ease-in-out infinite;
+}
+.td-card .td-theme { order: 1; gap: 2px; padding: 3px; }
+.td-theme button {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 13px;
+  transition: background-color .2s, color .2s;
+}
+.td-theme button[aria-checked="true"] { background: #1d344a; color: #fff; }
+
+@keyframes td-pulse { 50% { opacity: .35; transform: scale(.8); } }
+
+@media (max-width: 640px) {
+  .td-card { aspect-ratio: 10 / 16; }
+  .td-card-ui { left: 12px; right: 12px; top: 12px; bottom: auto; }
+  .td-card-ui:has(.td-theme) .td-pill-long { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .td-pill-dot { animation: none; }
+}

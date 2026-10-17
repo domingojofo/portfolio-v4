@@ -1,0 +1,1135 @@
+/* =========================================================================
+   Tokens
+   ========================================================================= */
+:root {
+  --stage: #E0E0DA;
+  --line: rgb(15 33 50 / .3);
+  --ink: #1D344A;
+  --hl: #F8651B;          /* logo orange */
+
+  --serif: var(--font-maragsa), Georgia, serif;
+  --sans: var(--font-graphik), system-ui, sans-serif;
+  --wide: var(--font-graphik-wide), var(--font-graphik), system-ui, sans-serif;
+
+  /* Width of the project panels (breakout, after robwinters.github.io): wider than the 960px
+     text column, up to 1440px, always leaving at least 48px each side. The hero's outer grid
+     lines use the same width, so they line up with the panels' edges. */
+  --panel-w: clamp(min(960px, 100vw - 48px), 100vw - 96px, 1440px);
+
+  /* How much of the Design section (its carousel edge) peeks up from the bottom of the first screen */
+  --peek: 6svh;
+  /* Desktop bottom dock (nav links / Menu button). It floats over the peeking carousel on purpose:
+     the carousel under the blur is the hint that there's more below. */
+  --dock: 6svh;
+
+  /* Paper grain (fine speckle + soft blotches), used by .paper and the ticker band */
+  --grain:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4  0 0 0 0 .34  0 0 0 0 .25  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { background: var(--stage); scroll-behavior: smooth; }
+body {
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow-x: clip;
+}
+a { color: inherit; }
+
+/* Paper grain: fixed behind the whole page, so it doesn't zoom with the hero or scroll with content */
+.paper {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: .2;
+  mix-blend-mode: multiply;
+}
+
+/* =========================================================================
+   Intro state
+   <html data-intro="playing"> is set before first paint when the hero intro will play
+   (see the inline script in app/layout.tsx). Everything below defaults to the finished
+   state, so pages that skip the intro — /design, return visits — render complete at once.
+   ========================================================================= */
+
+/* =========================================================================
+   Hero ("Hey")
+   ========================================================================= */
+/* The hero stays pinned while the Design section scrolls up over it */
+.hero {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  container-type: size;
+
+  /* Type scale + rows, all derived from the hero's size (cqw/cqh = % of hero width/height).
+     Word box height = Maragsa cap height (0.697em) + 0.03em top padding. */
+  /* Headline size follows the panel width (bigger on wider windows), capped by the window height
+     so it never crowds the intro copy */
+  --fs: min(var(--panel-w) * .15, 22cqh);
+  --row: calc(var(--fs) * 0.727);
+  --gap: calc(var(--fs) * 0.18);
+  --y0: 6cqh;                                               /* top band line */
+  --y1: 24.8cqh;                                            /* top of row 1 */
+  --y2: calc(var(--y1) + var(--row) * 2 + var(--gap));      /* bottom of row 2 */
+  --y3: calc(100cqh - var(--peek));                        /* top of the carousel */
+  /* Column lines. The outer two sit on the project panels' edges; the inner two keep their
+     original proportions inside that frame. */
+  --gl: calc((100cqw - var(--panel-w)) / 2);
+  --v1: var(--gl);
+  --v2: calc(var(--gl) + var(--panel-w) * .1363);
+  --v3: calc(var(--gl) + var(--panel-w) * .799);
+  --v4: calc(100cqw - var(--gl));
+}
+
+/* Scroll parallax layer (Hero.tsx): the intro copy drifts up */
+.bio-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.bio { pointer-events: auto; }
+
+/* Everything inside .stage zooms together during the intro */
+.stage {
+  position: absolute; inset: 0;
+  transform-origin: calc(var(--v1) - var(--fs) * 0.03) calc(var(--y1) + var(--row) / 2);
+}
+html[data-intro="playing"] .hero:not(.is-running) .stage { visibility: hidden; }
+
+/* Grid lines */
+.ln { position: absolute; background: var(--line); }
+.ln.h { height: 1px; left: 0; right: 0; }
+.ln.v { width: 1px; top: 0; bottom: 0; }
+.ln.from-start.h { transform-origin: left center; }
+.ln.from-end.h   { transform-origin: right center; }
+.ln.from-start.v { transform-origin: center top; }
+.ln.from-end.v   { transform-origin: center bottom; }
+html[data-intro="playing"] .ln.h { transform: scaleX(0); }
+html[data-intro="playing"] .ln.v { transform: scaleY(0); }
+
+.y0 { top: var(--y0); }
+.y1 { top: var(--y1); }
+.y2 { top: var(--y2); }
+.y3 { top: var(--y3); }
+.x1 { left: var(--v1); }
+.x2 { left: var(--v2); }
+.x3 { left: var(--v3); }
+.x4 { left: var(--v4); }
+
+/* Words
+   Each word has an invisible full-length copy (.ghost) that fixes the word's final size and
+   position, so typing always grows left → right from where the first letter ends up — even for
+   the right-aligned "Collaborative". The visible text and its highlight live in .typed, which
+   only spans what's been typed so far. */
+.word {
+  position: absolute;
+  top: var(--y1);
+  white-space: pre;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs);
+  letter-spacing: -0.025em;
+}
+.word .ghost, .word .typed { padding: var(--pad); }
+.word .ghost { display: block; visibility: hidden; }
+.word .typed { position: absolute; left: 0; top: 0; display: flex; }
+.word .ghost, .word .txt { line-height: 1; text-box: trim-both cap alphabetic; }
+.word .txt { position: relative; z-index: 1; }
+.word .bg {
+  position: absolute; inset: 0;
+  /* Orange with a fine printed grain, multiplied in so the speckle reads as darker orange */
+  background-color: var(--hl);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45  0 0 0 0 .22  0 0 0 0 .08  0 0 0 .7 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  background-blend-mode: multiply;
+  transform-origin: left center;
+}
+html[data-intro="playing"] .word .bg { transform: scaleX(0); }
+html[data-intro="playing"] .hero:not(.is-running) .word .txt { visibility: hidden; }
+
+/* "Relentlessly" hangs off the first column line; "Collaborative" sits on the row below,
+   right-aligned to the last column line */
+.w-1 { left: calc(var(--v1) - var(--fs) * 0.03); --pad: 0.03em 0.1em 0 0.02em; }
+.w-2 {
+  right: calc(100cqw - var(--v4) - var(--fs) * 0.03);
+  top: calc(var(--y1) + var(--row) + var(--gap));
+  --pad: 0.03em 0.03em 0 0.17em;
+}
+
+/* Carets */
+.caret {
+  position: absolute;
+  left: 0; top: 0;
+  width: max(1px, 0.012em);
+  height: 1.1em;
+  font-size: var(--fs);
+  background: var(--hl);
+  z-index: 2;
+  opacity: 0;
+}
+.caret.blink { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Images (one grid cell each) */
+.cell {
+  position: absolute;
+  overflow: hidden;
+  background: #ccc;
+}
+html[data-intro="playing"] .cell { clip-path: inset(0 0 100% 0); }
+.cell img { object-fit: cover; filter: grayscale(1) contrast(1.1); }
+
+.cell-1 { left: 0;          top: var(--y0); width: var(--v1);                height: calc(var(--y1) - var(--y0)); }
+.cell-2 { left: var(--v3);  top: var(--y0); width: calc(var(--v4) - var(--v3)); height: calc(var(--y1) - var(--y0)); }
+.cell-3 { left: var(--v1);  top: var(--y2); width: calc(var(--v2) - var(--v1)); height: calc(var(--y3) - var(--y2)); }
+
+/* Intro copy */
+.bio {
+  position: absolute;
+  left: calc(var(--v2) + 19px);
+  bottom: calc(100cqh - var(--y3) + 22px);
+  z-index: 3;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+html[data-intro="playing"] .bio { opacity: 0; }
+.bio p + p { margin-top: 1.4em; }
+.serif { font-family: var(--serif); }
+
+/* "Jofo!" — underline draws in and the photo pops up on hover / focus */
+.name {
+  position: relative;
+  color: var(--hl);
+  cursor: default;
+  outline: none;
+}
+.name::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .25s cubic-bezier(.22,1,.36,1);
+}
+.name-photo {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: 112px;
+  height: 112px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgb(15 33 50 / .18);
+  opacity: 0;
+  transform: translateY(6px) scale(.96);
+  transform-origin: bottom left;
+  transition: opacity .2s ease, transform .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+.name:hover::after, .name:focus-visible::after { transform: scaleX(1); }
+.name:hover .name-photo, .name:focus-visible .name-photo { opacity: 1; transform: none; }
+
+.company { white-space: nowrap; }
+.company img { display: inline-block; vertical-align: -2px; margin-right: 3px; }
+
+/* Ticker: slow infinite carousel in the hero's bottom grid band. A filled band with a rule
+   above and below — the fill covers the grid's vertical lines so they stop at the band.
+   It sits under the fixed bottom blur on purpose — the blurred ticker hints there's more below.
+   Two identical groups slide left by one group's width, so the loop is seamless; 64px between items. */
+.ticker {
+  position: relative;
+  height: var(--peek);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  z-index: 2;
+  background: var(--stage);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--wide);
+  font-size: 14px;
+  color: var(--ink);
+  white-space: nowrap;
+  transition: opacity .5s ease .15s;
+}
+.ticker::before {                 /* same paper grain as the page, so the fill doesn't look flat */
+  content: "";
+  position: absolute; inset: 0;
+  background-image: var(--grain);
+  opacity: .2;
+  mix-blend-mode: multiply;
+}
+html[data-intro="playing"] .ticker { opacity: 0; }
+.ticker-track { position: relative; display: flex; width: max-content; animation: ticker 48s linear infinite; }
+.ticker-group {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  padding: 0 64px 0 0;
+  margin: 0;
+  list-style: none;
+}
+.ticker .sep { width: 17px; height: 19px; flex: none; display: block; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* =========================================================================
+   Design section (part of the home scroll; also the /design address)
+   ========================================================================= */
+/* A full-width paper sheet that scrolls up over the pinned hero. It starts tucked under the
+   first screen so only its carousel edge shows. */
+.design {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(var(--peek) * -1);
+  background: var(--stage);
+  transition: box-shadow .4s ease;
+}
+.is-scrolled .design { box-shadow: 0 -16px 40px rgb(29 52 74 / .08); }   /* depth only once it's moving */
+.design::before {                 /* same paper grain as the page */
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: .2;
+  mix-blend-mode: multiply;
+}
+.design-inner {
+  position: relative;
+  max-width: 960px;                /* text column (after robwinters.github.io); panels break out */
+  margin: 0 auto;
+  padding: 160px 24px 200px;
+  box-sizing: content-box;
+}
+.design h2, .page h1 {
+  max-width: 720px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.design h2 { margin-bottom: 48px; }
+
+/* minmax(0, 1fr): the column never grows past the screen to fit a card's minimum width.
+   Breakout (after robwinters.github.io): the text stays in the 960px column, but the project
+   panels grow past it on wider windows, up to 1440px, always leaving at least 48px each side.
+   On narrow screens 100vw − 96px is smaller than the column, so they simply fill it. */
+.project-list {
+  width: var(--panel-w);
+  margin-left: calc((100% - var(--panel-w)) / 2);
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.project-list > li { min-width: 0; }
+/* Panels: softly rounded, 6px at 960px wide growing to 9px at 1440px */
+.project-list :is(.project-card, .td-card, .banks-card, .va-card, .chipp-card) {
+  border-radius: clamp(6px, (100vw - 96px) * .00625, 9px);
+  overflow: hidden;
+}
+/* Company intros (in the 960px text column): name and role on the left, a short summary on the right */
+.company-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 960px;                /* the text column, while the panels around it break out */
+  margin-inline: auto;
+  padding: 120px 0 16px;
+}
+.company-intro:first-child { padding-top: 24px; }
+.company-name { font-family: var(--serif); font-weight: 400; font-size: clamp(26px, 2.4vw, 34px); line-height: 1.1; }
+.company-meta { margin-top: 8px; font-size: 15px; }
+.company-summary { max-width: 520px; font-size: 17px; line-height: 1.5; }
+@media (max-width: 640px) {
+  .company-intro { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 72px; }
+}
+.project-card { display: block; text-decoration: none; }
+.project-card img { display: block; width: 100%; height: auto; }
+.project-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 15px;
+}
+/* Two cards side by side. Columns are weighted by each card's aspect ratio (3:2 photo, 2:3
+   portrait) so both come out the same height. */
+.project-row {
+  display: grid;
+  grid-template-columns: 1.5014fr .6667fr;
+  gap: clamp(16px, 16px + (100vw - 1056px) / 60, 24px);   /* 16px at 960px wide → 24px at 1440px */
+  align-items: start;
+}
+.project-row > * { min-width: 0; }
+@media (max-width: 640px) {
+  .project-row { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+.project-card-title { font-family: var(--serif); font-size: 20px; }
+.project-card:hover .project-card-title { color: var(--hl); }
+.muted { color: rgb(29 52 74 / .65); }
+
+/* =========================================================================
+   Simple pages: About, Reading, Writing, full project pages
+   ========================================================================= */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 160px 24px 200px;
+  box-sizing: content-box;
+  font-size: 17px;
+  line-height: 1.6;
+}
+.page h1 { margin-bottom: 32px; }
+.page h2 { font-family: var(--serif); font-weight: 400; font-size: 28px; margin: 48px 0 12px; }
+.page p + p, .page ul { margin-top: 16px; }
+.page.wide { max-width: 960px; }
+
+.list { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+.list li { border-bottom: 1px solid var(--line); }
+.list a, .list .row { display: flex; justify-content: space-between; gap: 24px; padding: 20px 0; text-decoration: none; }
+.list a:hover .list-title { color: var(--hl); }
+.list-title { font-family: var(--serif); font-size: 22px; }
+.list time, .list .row > .muted { flex: none; white-space: nowrap; }
+
+/* Project content (shared by the modal and the full page) */
+.project h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 56px); line-height: 1.08; }
+.project-meta { display: flex; gap: 24px; margin: 16px 0 32px; font-size: 15px; }
+.project img { display: block; width: 100%; height: auto; }
+.project p { margin-top: 32px; max-width: 720px; font-size: 17px; line-height: 1.6; }
+
+/* =========================================================================
+   Writing: sidebar of every entry + the open entry (WritingShell)
+   The sidebar is sticky and scrolls on its own; the entry scrolls with the page, under the
+   edge blur. Hiding the sidebar fades it out, then drops it from the grid so the entry centres.
+   ========================================================================= */
+.writing {
+  display: grid;
+  grid-template-columns: clamp(240px, 36%, 480px) 1fr;
+  min-height: 100svh;
+}
+.writing[data-gone="true"] { grid-template-columns: 1fr; }
+
+/* "Esc · Hide sidebar" chip, pinned top-left under the nav */
+.writing-toggle {
+  position: fixed;
+  top: 96px; left: 24px;
+  z-index: 50;
+  display: flex; align-items: center; gap: 8px;
+  height: 28px;
+  padding: 0 10px 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--stage);
+  font: inherit; font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.writing-toggle:hover { color: var(--hl); border-color: var(--hl); }
+.writing-toggle:focus-visible { outline: 2px solid var(--hl); outline-offset: 3px; }
+.writing-toggle kbd {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(29 52 74 / .08);
+  font-family: inherit; font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.writing-sidebar {
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 148px 32px 120px 24px;
+  border-right: 1px solid var(--line);
+  /* Titles fade out as they scroll up under the chip, and at the bottom edge */
+  -webkit-mask: linear-gradient(transparent 112px, #000 148px, #000 calc(100% - 80px), transparent);
+          mask: linear-gradient(transparent 112px, #000 148px, #000 calc(100% - 80px), transparent);
+  transition: opacity .28s ease, transform .28s ease;
+}
+.writing-sidebar::-webkit-scrollbar { display: none; }
+.writing[data-open="false"] .writing-sidebar { opacity: 0; transform: translateX(-12px); }
+.writing[data-gone="true"] .writing-sidebar { display: none; }
+
+.writing-heading { display: none; }     /* phone only — on desktop the entry title is the heading */
+.writing-list { list-style: none; padding: 0; }
+.writing-item { display: flex; align-items: flex-start; gap: 10px; padding: 14px 0; text-decoration: none; }
+.writing-item:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; }
+.writing-arrow { flex: none; margin-top: 6px; font-size: 9px; color: var(--hl); opacity: 0; transition: opacity .2s; }
+.writing-item[aria-current="page"] .writing-arrow { opacity: 1; }
+.writing-item-title {
+  display: block;
+  font-family: var(--serif); font-size: 20px; line-height: 1.2;
+  color: rgb(29 52 74 / .55);
+  transition: color .2s;
+}
+.writing-item:hover .writing-item-title,
+.writing-item[aria-current="page"] .writing-item-title { color: var(--ink); }
+.writing-item-meta { display: flex; gap: 8px; margin-top: 6px; font-size: 12px; color: rgb(29 52 74 / .5); }
+.writing-item[aria-current="page"] .writing-item-meta { color: rgb(29 52 74 / .75); }
+
+/* The entry: left-aligned beside the sidebar, centred once it's gone */
+.writing-main { min-width: 0; padding: 148px 48px 200px; }
+.writing-back { display: none; }
+.writing-entry { max-width: 680px; }
+.writing[data-gone="true"] .writing-entry { margin-inline: auto; }
+.writing-entry h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.writing-entry-meta { display: flex; gap: 8px; margin: 16px 0 48px; font-size: 14px; }
+
+.writing-prose { font-size: 18px; line-height: 1.75; overflow-wrap: break-word; }
+.writing-prose > * + * { margin-top: 1.2em; }
+.writing-prose h2, .writing-prose h3 { font-family: var(--serif); font-weight: 400; line-height: 1.2; margin-top: 1.8em; }
+.writing-prose h2 { font-size: 30px; }
+.writing-prose h3 { font-size: 24px; }
+.writing-prose h2 + *, .writing-prose h3 + * { margin-top: .6em; }
+.writing-prose ul, .writing-prose ol { padding-left: 1.3em; }
+.writing-prose li + li { margin-top: .4em; }
+.writing-prose a { text-decoration-color: var(--hl); text-underline-offset: 3px; }
+.writing-prose a:hover { color: var(--hl); }
+.writing-prose blockquote { padding-left: 1.2em; border-left: 2px solid var(--hl); font-style: italic; }
+.writing-prose hr { border: 0; border-top: 1px solid var(--line); margin-block: 2.4em; }
+.writing-prose img { display: block; max-width: 100%; height: auto; }
+.writing-prose code { font-size: .9em; }
+
+/* =========================================================================
+   Project modal
+   ========================================================================= */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  z-index: 200;                     /* above the edge blur strips (100) */
+  background: rgb(15 33 50 / .35);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 72px 24px;
+}
+.modal-panel {
+  position: relative;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 40px;
+  background: var(--stage);
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgb(15 33 50 / .25);
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 8px;
+}
+.modal-close:hover { color: var(--hl); }
+
+/* =========================================================================
+   Nav (top strip) + progressive edge blur
+   Fixed strips at the top and bottom of the viewport. Four stacked backdrop-blur layers,
+   each masked to a narrower band, build a blur that strengthens toward the edge;
+   ::after adds a colour wash that fades out from the edge.
+   ========================================================================= */
+.edge-blur {
+  --edge-tint: 224 224 218;   /* wash colour as "R G B" — matches --stage (#E0E0DA) */
+  --edge-wash: .45;           /* wash strength at the edge (0 = blur only) */
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 100;               /* top layer: page content scrolls underneath; the modal (200) sits above */
+  height: var(--edge-h);
+  pointer-events: none;
+}
+.edge-blur--top    { top: 0;    --edge-h: 96px; --dir: to bottom; }
+/* The bottom strip is taller and blurs harder than the top (--b1…--b4 are its four layers) */
+.edge-blur--bottom { bottom: 0; --edge-h: 110px; --dir: to top; --b1: 2px; --b2: 5px; --b3: 10px; --b4: 20px; }
+
+/* The strips arrive after the hero intro. The blur layers grow out from the screen edge —
+   growing height rather than fading, because opacity < 1 would switch backdrop-filter off
+   mid-fade. The nav content fades in with them. */
+.edge-fx {
+  position: absolute; left: 0; right: 0; height: 100%;
+  transition: height .6s cubic-bezier(.22,1,.36,1);
+}
+.edge-blur--top    .edge-fx { top: 0; }
+.edge-blur--bottom .edge-fx { bottom: 0; }
+html[data-intro="playing"] .edge-fx { height: 0; }
+.edge-fx > i { position: absolute; inset: 0; }
+.edge-fx > i:nth-child(1) {
+  -webkit-backdrop-filter: blur(var(--b1, 1px)); backdrop-filter: blur(var(--b1, 1px));
+  -webkit-mask: linear-gradient(var(--dir), #000 40%, transparent 100%);
+          mask: linear-gradient(var(--dir), #000 40%, transparent 100%);
+}
+.edge-fx > i:nth-child(2) {
+  -webkit-backdrop-filter: blur(var(--b2, 3px)); backdrop-filter: blur(var(--b2, 3px));
+  -webkit-mask: linear-gradient(var(--dir), #000 25%, transparent 75%);
+          mask: linear-gradient(var(--dir), #000 25%, transparent 75%);
+}
+.edge-fx > i:nth-child(3) {
+  -webkit-backdrop-filter: blur(var(--b3, 6px)); backdrop-filter: blur(var(--b3, 6px));
+  -webkit-mask: linear-gradient(var(--dir), #000 10%, transparent 50%);
+          mask: linear-gradient(var(--dir), #000 10%, transparent 50%);
+}
+.edge-fx > i:nth-child(4) {
+  -webkit-backdrop-filter: blur(var(--b4, 12px)); backdrop-filter: blur(var(--b4, 12px));
+  -webkit-mask: linear-gradient(var(--dir), #000 0%, transparent 28%);
+          mask: linear-gradient(var(--dir), #000 0%, transparent 28%);
+}
+.edge-fx::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--dir), rgb(var(--edge-tint) / var(--edge-wash)), rgb(var(--edge-tint) / 0));
+}
+
+/* Top bar content: logo (→ Hey) on the left; location, live time and LinkedIn/CV on the right,
+   centred in the top grid band */
+.nav-inner {
+  position: absolute;
+  /* Snapped to the grid (the hero's outer lines = the project panels' edges). At the very top
+     the logo and links sit 16px inside the lines, in the top corner cells; once you scroll they
+     slide out into the margins, 8px outside the lines. */
+  --gutter: calc((100% - var(--panel-w)) / 2);
+  left: calc(var(--gutter) + 16px);
+  right: calc(var(--gutter) + 16px);
+  top: 0;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: auto;
+  transition: opacity .5s ease .15s, left .5s cubic-bezier(.22, 1, .36, 1), right .5s cubic-bezier(.22, 1, .36, 1);
+}
+@media (min-width: 1024px) {
+  /* Scrolled: logo 8px left of the left line; LinkedIn + CV (40px) 8px right of the right line */
+  html.is-scrolled .nav-inner {
+    left: max(8px, var(--gutter) - 8px - 32px);
+    right: max(8px, var(--gutter) - 8px - 40px);
+  }
+  /* The time moves to the bottom-right corner on desktop */
+  .top-right .locale { display: none; }
+}
+
+/* Bottom-right location + time (desktop). White + difference = the inverse of what's behind it. */
+.locale-corner {
+  position: fixed;
+  right: calc((100% - var(--panel-w)) / 2 + 16px);
+  bottom: 0;
+  z-index: 115;
+  height: var(--dock);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 15px;
+  text-transform: uppercase;
+  color: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  transition: opacity .5s ease .15s, right .5s cubic-bezier(.22, 1, .36, 1);
+}
+.locale-corner .clock { min-width: 8ch; text-align: right; }
+.locale-corner-icon {
+  width: 13.43px; height: 16.67px;
+  margin-top: -3px;                /* sits on the text's baseline, as in Figma */
+  background: currentColor;
+  -webkit-mask: url(/icons/nyc.svg) center / contain no-repeat;
+          mask: url(/icons/nyc.svg) center / contain no-repeat;
+}
+html[data-intro="playing"] .locale-corner { opacity: 0; }
+@media (max-width: 1023px) { .locale-corner { display: none; } }
+html[data-intro="playing"] .nav-inner { opacity: 0; pointer-events: none; }
+.logo { display: block; line-height: 0; }
+.logo svg { width: 32px; height: 14px; }
+.logo:focus-visible, .dock a:focus-visible, .keycap:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
+.top-right { display: flex; align-items: center; gap: 20px; }
+.locale { display: flex; gap: 8px; font-size: 14px; }
+.clock { display: inline-block; min-width: 8ch; font-variant-numeric: tabular-nums; }
+
+/* Bottom dock (desktop): page links centred, navigation hint on the left, both in the bottom
+   grid band above the blur. On scroll they drop away and the Menu button rises into place. */
+.dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 110;                    /* above the bottom blur strip */
+  height: var(--dock);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity .5s ease .15s;
+}
+.dock > * { pointer-events: auto; }
+.dock [inert] { pointer-events: none; }
+html[data-intro="playing"] .dock { opacity: 0; }
+html[data-intro="playing"] .dock > * { pointer-events: none; }
+.dock-links { display: flex; gap: 28px; list-style: none; padding: 0; font-size: 14px; }
+.dock-links a { text-decoration: none; }
+.dock-links a:hover, .dock-links a[aria-current="page"] { color: var(--hl); }
+
+.nav-hint {
+  position: absolute;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+.keycap { display: block; padding: 0; border: 0; background: none; line-height: 0; cursor: pointer; transition: transform .12s ease; }
+.keycap + .keycap { margin-left: -4px; }       /* 4px between the two keys */
+.keycap:hover { transform: translateY(1px); }
+.keycap:hover img { filter: brightness(.85); }
+
+/* Menu button (Figma "Menu ⌘K"): a navy keycap. It rises into the links' place once you scroll;
+   on hover it presses down — the thick bottom edge thins as the key moves 2px. */
+.menu-trigger {
+  position: absolute;
+  left: 50%;                       /* centred via Motion's x: -50% */
+  top: calc(50% - 17px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid #3A4854;
+  border-bottom-width: 3px;
+  border-radius: 4px;
+  background: #1D344A;
+  color: #D9D9D2;
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: normal;
+  cursor: pointer;
+  transition: border-bottom-width .12s ease, background-color .2s ease;
+}
+.menu-trigger:hover, .menu-trigger:focus-visible { border-bottom-width: 1px; background: #22405B; outline: none; }
+.menu-trigger:focus-visible { box-shadow: 0 0 0 2px var(--stage), 0 0 0 4px var(--hl); }
+.menu-trigger-key {
+  padding: 0 2px;
+  border-radius: 2px;
+  background: #3A4854;
+  font-family: var(--sans);
+  font-size: 14px;
+  transition: background-color .2s ease;
+}
+.menu-trigger:hover .menu-trigger-key { background: #4A5C6C; }
+
+/* LinkedIn + CV icons */
+.social { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; }
+.social a { display: block; line-height: 0; }
+.social a:hover { opacity: .7; }
+.social a:focus-visible { outline: 2px solid var(--hl); outline-offset: 3px; }
+/* Icons are 16px boxes; the SVGs carry a stroke that overflows that box slightly (as in Figma) */
+.social-icon { position: relative; display: block; width: 16px; height: 16px; }
+.social-icon img { position: absolute; left: -0.533px; top: -0.533px; }
+.cv-icon { width: 12.8px; }
+.cv-icon span {
+  position: absolute; left: 1.6px; top: 5.87px;
+  font-family: var(--serif); font-size: 8px; line-height: normal; color: var(--ink);
+}
+
+/* =========================================================================
+   Mobile / iPad bottom bar + page menu (hidden on desktop)
+   ========================================================================= */
+.mobile-bar {
+  display: none;
+  position: fixed;
+  left: 16px; right: 16px; bottom: 16px;
+  z-index: 110;                    /* above the bottom blur strip */
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity .5s ease .15s;
+}
+html[data-intro="playing"] .mobile-bar { opacity: 0; pointer-events: none; }
+.page-menu-button {
+  display: flex; align-items: center; gap: 8px;
+  border: 0; background: none; padding: 4px 0;
+  font-family: var(--serif); font-size: 16px; color: var(--hl);
+  cursor: pointer;
+}
+.page-menu-button:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
+
+/* =========================================================================
+   Command menu (⌘K) — ported from portfolio-v2, restyled for v3
+   ========================================================================= */
+.cmdk-root { position: fixed; inset: 0; z-index: 300; }
+.cmdk-backdrop { position: absolute; inset: 0; background: rgb(29 52 74 / .3); backdrop-filter: blur(2px); }
+.cmdk {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--stage);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  box-shadow: 0 24px 60px rgb(29 52 74 / .25);
+  overflow: hidden;
+}
+.cmdk::before {                       /* paper grain */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: var(--grain); opacity: .2; mix-blend-mode: multiply;
+}
+.cmdk > * { position: relative; }
+/* Desktop: a panel anchored under the Menu button, growing out of it */
+.cmdk--panel {
+  top: calc(3vh + 26px);
+  right: 24px;
+  width: min(400px, 100vw - 48px);
+  border-radius: 10px;
+  transform-origin: top right;
+}
+/* Phones / tablets: bottom sheet */
+.cmdk--sheet {
+  left: 0; right: 0; bottom: 0;
+  max-height: 85dvh;
+  border: 0;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -12px 40px rgb(29 52 74 / .18);
+}
+.cmdk-grab { flex: none; padding: 10px 0 6px; touch-action: none; cursor: grab; }
+.cmdk-grab::before {
+  content: ""; display: block; width: 36px; height: 5px; margin: 0 auto;
+  border-radius: 3px; background: rgb(29 52 74 / .25);
+}
+.cmdk-input-row { flex: none; padding: 0 16px; border-bottom: 1px dashed var(--line); }
+.cmdk-input {
+  width: 100%;
+  padding: 16px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  outline: none;
+}
+.cmdk-input::placeholder { color: rgb(29 52 74 / .5); }
+.cmdk-list { max-height: min(380px, 55vh); overflow-y: auto; overscroll-behavior: contain; padding: 8px; outline: none; }
+.cmdk--sheet .cmdk-list { flex: 1; max-height: none; }
+.cmdk-group + .cmdk-group { margin-top: 8px; }
+.cmdk-heading {
+  padding: 6px 12px;
+  font-family: var(--wide);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgb(29 52 74 / .55);
+}
+.cmdk-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: var(--serif);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+.cmdk--sheet .cmdk-item { padding: 14px 12px; font-size: 22px; }
+.cmdk-item small { font-family: var(--sans); font-size: 12px; color: rgb(29 52 74 / .55); }
+.cmdk-item[aria-current="page"] small { color: var(--hl); }
+.cmdk-item[aria-selected="true"] { background: var(--ink); color: var(--stage); }
+.cmdk-item[aria-selected="true"] small { color: var(--stage); opacity: .7; }
+.cmdk-empty { padding: 24px 12px; text-align: center; font-size: 14px; color: rgb(29 52 74 / .55); }
+.cmdk-footer {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  color: rgb(29 52 74 / .6);
+}
+.cmdk-footer span { display: inline-flex; align-items: center; gap: 4px; }
+.cmdk-footer kbd {
+  display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  border: 1px solid rgb(29 52 74 / .4);
+  border-radius: 3px;
+  font-family: var(--sans); font-size: 11px; color: var(--ink);
+}
+/* Touch devices have no keyboard shortcuts */
+@media (hover: none) and (pointer: coarse) {
+  .cmdk-footer { display: none; }
+}
+
+/* =========================================================================
+   Icon toolbar (Figma "Toolbar" frames) — being tested: visit /nav-test to switch it on
+   ========================================================================= */
+.tb {
+  position: fixed;
+  bottom: 20px;                    /* bottom centre, where the word nav was */
+  left: 50%;
+  translate: -50% 0;
+  z-index: 120;                    /* above the edge blur */
+  transition: opacity .5s ease .15s;
+}
+html[data-intro="playing"] .tb { opacity: 0; pointer-events: none; }
+
+/* Which nav shows: the word nav by default; the icon toolbar in toolbar mode (html.nav-toolbar,
+   set by the ?nav=toolbar switch). The ← → hint stays in toolbar mode. */
+html:not(.nav-toolbar) .tb { display: none; }
+html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-button) { display: none; }
+/* Toolbar mode: the dock holds only the ← → hint, in its original spot in the bottom band (it
+   slides away while scrolling down and back up when scrolling up — see useHintHidden in Nav.tsx).
+   On mobile the toolbar owns the bottom: the clock + LinkedIn/CV move up beside the logo, and
+   everything is 1.25× bigger with tap areas that cover the whole bar (no dead spots between icons). */
+@media (max-width: 1023px) {
+  html.nav-toolbar .mobile-bar { display: none; }
+  html.nav-toolbar .top-right { display: flex; gap: 16px; }
+  html.nav-toolbar .top-right .locale { font-size: 13px; }
+  html.nav-toolbar .top-right .social { gap: 14px; }
+  html.nav-toolbar .top-right .social-icon { zoom: 1.25; }   /* 16 → 20px */
+  html.nav-toolbar .top-right .social a { position: relative; }
+  html.nav-toolbar .top-right .social a::after { content: ""; position: absolute; inset: -12px -7px; }   /* ~44px target */
+
+  html.nav-toolbar .tb-bar { height: 61px; gap: 10px; padding: 0 10px; border-radius: 10px; }
+  html.nav-toolbar .tb-item { height: 40px; border-radius: 7px; }
+  html.nav-toolbar .tb-item::after { content: ""; position: absolute; inset: -10.5px -5px; }   /* fills the bar's height and gaps */
+  html.nav-toolbar .tb-icon { width: 35px; -webkit-mask-size: 35px 40px; mask-size: 35px 40px; }
+  html.nav-toolbar .tb-label > span { font-size: 15px; line-height: 25px; padding-right: 10px; }
+}
+/* Very narrow phones (iPhone SE 1st gen): tighter spacing so the bar keeps a margin */
+@media (max-width: 359px) {
+  html.nav-toolbar .tb-bar { gap: 6px; padding: 0 6px; }
+  html.nav-toolbar .tb-item::after { inset: -10.5px -3px; }
+}
+.tb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 49px;
+  padding: 0 8px;
+  border: 1px dashed #0D2741;
+  border-radius: 8px;
+  background: rgb(217 217 210 / .3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+          backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.tb-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .3s ease;
+}
+/* No focus ring: a focused icon shows the same brackets, arrow and tooltip as hover */
+.tb-item:focus-visible { outline: none; }
+/* Icons are the Figma SVGs used as masks, so one file can be navy, light or white */
+.tb-icon {
+  flex: none;
+  width: 28px;
+  height: 100%;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / 28px 32px no-repeat;
+          mask: var(--icon) center / 28px 32px no-repeat;
+}
+/* Selected: orange keycap, light icon (and its label until you scroll) */
+.tb-item.is-selected {
+  color: #D9D9D2;
+  background: var(--hl);
+  border: 1px solid #FAA87E;
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / .2), inset 0 1px 1px rgb(255 255 255 / .19);
+}
+.tb-label { display: block; overflow: hidden; white-space: nowrap; }
+.tb-label > span {
+  display: block;
+  padding-right: 8px;
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 20px;
+}
+/* Hover: four corner brackets frame the item */
+.tb-brackets { --w: 2px; position: absolute; inset: -1px; pointer-events: none; color: var(--hl); }   /* --w: bracket stroke */
+.tb-brackets i { position: absolute; width: 9px; height: 10px; border: 0 solid currentColor; }
+.tb-brackets i:nth-child(1) { top: 0; left: 0; border-top-width: var(--w); border-left-width: var(--w); border-top-left-radius: 4px; }
+.tb-brackets i:nth-child(2) { top: 0; right: 0; border-top-width: var(--w); border-right-width: var(--w); border-top-right-radius: 4px; }
+.tb-brackets i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: var(--w); border-left-width: var(--w); border-bottom-left-radius: 4px; }
+.tb-brackets i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: var(--w); border-right-width: var(--w); border-bottom-right-radius: 4px; }
+/* The arrow rides above the hovered (or selected) item; its tip dips just into the bar */
+.tb-arrow { position: absolute; left: 0; top: -17px; z-index: 2; line-height: 0; pointer-events: none; }
+/* The arrow always hovers: a gentle up-and-down bob (its position along the bar is animated by Motion) */
+.tb-arrow img { animation: tb-bob 1.6s ease-in-out infinite; }
+@keyframes tb-bob { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .tb-arrow img { animation: none; } }
+.tb-tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);           /* 4px below the icon */
+  padding: 4px 8px;
+  border: 1px solid rgb(29 52 74 / .3);
+  border-radius: 8px;
+  background: var(--stage);
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  isolation: isolate;
+}
+.tb-tooltip::before {             /* same paper grain as the page, under the text */
+  content: "";
+  position: absolute; inset: 0;
+  z-index: -1;
+  background-image: var(--grain);
+  opacity: .2;
+  mix-blend-mode: multiply;
+}
+
+/* =========================================================================
+   iPad + mobile (below 1024px), from the "iPhone 17" Figma frame
+   ========================================================================= */
+@media (max-width: 1023px) {
+  /* Hero grid: three column lines, type sized to the width, rows higher up */
+  .hero {
+    height: max(100svh, 640px);   /* very short phones scroll a little rather than overlap */
+    --fs: 17.9cqw;
+    --v1: 1.75cqw;  --v3: 64.9cqw;  --v4: 97.75cqw;
+    --y0: 0px;
+    --y1: 20.7cqh;
+    --y3: 65.1cqh;                /* rule above the intro copy */
+  }
+  .ln.y0, .ln.x2, .cell-3 { display: none; }
+  .ln.x3 { bottom: auto; height: var(--y3); }   /* stops at the rule above the intro copy */
+  .w-2 { --pad: 0.03em 0.03em 0 0.02em; }        /* highlight starts right at the "C" */
+
+  .bio {
+    left: 50%;
+    margin-left: max(-179px, -50% + 16px);
+    width: min(358px, 100% - 32px);
+    top: calc(var(--y3) + 13px);
+    bottom: auto;
+    font-size: 16px;
+  }
+  .bio .br-wide { display: none; }
+
+  /* The carousel edge of the Design section peeks up from the bottom of the screen, under the
+     blur — a hint there's more below. The hero's content stays in the top ~85%. */
+  :root { --peek: max(48px, 8vh); }
+  .is-scrolled .design { box-shadow: 0 -4px 16px rgb(29 52 74 / .05); }   /* subtler on a small screen: tighter and lighter */
+  .edge-blur--bottom { --edge-h: 14vh; }   /* taller on mobile so it backs the 1.25× toolbar */
+  .mobile-bar { bottom: max(6px, calc(2vh - 12px)); }
+
+  /* Top bar is just the logo; pages + LinkedIn/CV live in the bottom bar */
+  .edge-blur--top { --edge-h: 72px; }
+  .nav-inner { left: 16px; right: 16px; height: 46px; }
+  .top-right, .dock { display: none; }
+  .mobile-bar { display: flex; }
+
+  .design-inner { padding: 96px 16px 160px; }
+  .project-list { width: 100%; margin-left: 0; }
+  .page { padding: 112px 20px 160px; }
+  .modal-backdrop { padding: 56px 12px; }
+  .modal-panel { padding: 48px 20px 24px; }
+
+  .writing-toggle { left: 16px; }
+  .writing-sidebar { padding-left: 16px; }
+  .writing-main { padding: 148px 32px 160px; }
+}
+
+/* Phone: no sidebar. /writing is the list on its own; an entry shows on its own with a back link. */
+@media (max-width: 640px) {
+  .writing { display: block; }
+  .writing-toggle { display: none; }
+  .writing .writing-sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding: 112px 20px 160px;
+    border-right: 0;
+    -webkit-mask: none; mask: none;
+    opacity: 1; transform: none;
+  }
+  .writing[data-view="entry"] .writing-sidebar,
+  .writing[data-view="index"] .writing-main { display: none; }
+
+  .writing-heading {
+    display: block;
+    margin-bottom: 16px;
+    font-family: var(--serif); font-weight: 400;
+    font-size: 32px; line-height: 1.08; letter-spacing: -0.015em;
+  }
+  .writing-arrow { display: none; }
+  .writing-item-title { font-size: 22px; color: var(--ink); }
+  .writing-item-meta { color: rgb(29 52 74 / .65); }
+
+  .writing-main { padding: 96px 20px 160px; }
+  .writing-back {
+    display: inline-block;
+    margin-bottom: 32px;
+    font-size: 13px;
+    text-decoration: none;
+    color: rgb(29 52 74 / .65);
+  }
+  .writing-back:hover { color: var(--hl); }
+  .writing-entry h1 { font-size: 32px; }
+  .writing-entry-meta { margin-bottom: 32px; }
+  .writing-prose { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ticker-track { animation: none; }
+}
+
+/* =========================================================================
+   Test preloader (?loader) — see Preloader.tsx
+   ========================================================================= */
+.preloader { display: none; }
+html[data-loader="on"] { overflow: hidden; }
+html[data-loader="on"] .preloader {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  color: #ECE5DD;
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: 22px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+}
+.pl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pl-text { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 4vh 0 10vh; overflow: hidden; }
+.pl-group { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; position: relative; }
+.pl-group + .pl-group { border-top: 1px solid #2A2826; }
+.pl-line { position: relative; left: calc(var(--l) * 1%); height: 1em; white-space: nowrap; }   /* --l: start, % of the width */
+.pl-line > span { position: absolute; left: 0; top: 0; will-change: transform, opacity; transform: translateX(-110vw); }
+.pl-ghost { opacity: 0; }
+.pl-count {
+  position: absolute; left: 50%; bottom: 4vh; translate: -50% 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 13px; letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  html[data-loader="on"] .preloader { font-size: 16px; }
+  .pl-line { left: calc(16px + var(--l) * .4%); }   /* same zigzag, compressed to fit a phone */
+}
