@@ -60,6 +60,9 @@ export function Hero() {
       // Test preloader (?loader): start once it has finished and begins to dissolve
       if (html.dataset.loader === "on") await new Promise<void>((r) => addEventListener("loader:done", () => r(), { once: true }));
       if (cancelled) return;
+      // Wait for the web fonts (display: block), or the words would animate in invisible
+      await Promise.race([document.fonts.ready, wait(3000)]);
+      if (cancelled) return;
       await wait(300);
 
       // 1. The headline words drop in small and scrambling; each line's first word tucks under the

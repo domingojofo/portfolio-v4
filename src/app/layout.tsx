@@ -46,6 +46,11 @@ const introScript = `try{if(location.pathname==="/"&&!sessionStorage.getItem(${J
 // behind it. Runs before the intro script so the intro is armed even if it already played.
 const loaderScript = `try{if(new URLSearchParams(location.search).has("loader")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.dataset.loader="on";sessionStorage.removeItem(${JSON.stringify(INTRO_KEY)})}}catch(e){}`;
 
+// Until the web fonts have loaded, text with display:block fonts is invisible while images aren't —
+// so the work deck would show before the hero headline. html.fonts-loading holds the deck back
+// (globals.css) until the fonts are ready, or 3s at most.
+const fontsScript = `try{var h=document.documentElement;h.classList.add("fonts-loading");var d=function(){h.classList.remove("fonts-loading")};document.fonts.ready.then(d);setTimeout(d,3000)}catch(e){}`;
+
 // Nav variant being tested. The icon toolbar is the default for now; ?nav=words switches this
 // browser back to the word nav, ?nav=toolbar (or /nav-test) to the toolbar. Remembered in
 // localStorage; set before first paint so the page never flashes the other nav.
@@ -59,6 +64,7 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
     <html lang="en" className={`${gelica.variable} ${publicSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: loaderScript }} />
+        <script dangerouslySetInnerHTML={{ __html: fontsScript }} />
         <script dangerouslySetInnerHTML={{ __html: introScript }} />
         <script dangerouslySetInnerHTML={{ __html: navVariantScript }} />
         {/* Without JS the word reveal never runs — show headings as they are */}
