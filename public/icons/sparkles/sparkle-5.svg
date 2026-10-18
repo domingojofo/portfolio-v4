@@ -1,0 +1,42 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20.0819" height="17.198" viewBox="0 0 20.0819 17.198" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Group 1000001131">
+<g id="Vector 827">
+<use xlink:href="#stroke0_0_29" fill="#F8651B"/>
+<mask id="stroke1_0_29" maskUnits="userSpaceOnUse" x="-0.579877" y="-0.381404" width="12.0229" height="12.0229" fill="black">
+<rect fill="white" x="-0.579877" y="-0.381404" width="12.0229" height="12.0229"/>
+<use xlink:href="#stroke0_0_29"/>
+</mask>
+<path d="M3.80704 0.954472L3.60226 1.87654C3.38894 2.83703 3.59906 3.84288 4.17904 4.63766L3.96763 5.0742C2.98445 5.11197 2.06503 5.57079 1.44372 6.3337L0.847272 7.06609L8.65705 7.07576L3.80704 0.954472Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke1_0_29)"/>
+</g>
+<g id="Vector 828">
+<use xlink:href="#stroke2_0_29" fill="#F8651B"/>
+<mask id="stroke3_0_29" maskUnits="userSpaceOnUse" x="8.30657" y="-0.700294" width="12.2942" height="12.2942" fill="black">
+<rect fill="white" x="8.30657" y="-0.700294" width="12.2942" height="12.2942"/>
+<use xlink:href="#stroke2_0_29"/>
+</mask>
+<path d="M19.2348 6.72791L18.5868 6.04072C17.9118 5.32488 16.9615 4.93396 15.9782 4.96761L15.7356 4.54755C16.2564 3.71279 16.393 2.69436 16.1106 1.75187L15.8395 0.847083L11.4463 7.30405L19.2348 6.72791Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke3_0_29)"/>
+</g>
+<g id="Vector 829">
+<use xlink:href="#stroke4_0_29" fill="#F8651B"/>
+<mask id="stroke5_0_29" maskUnits="userSpaceOnUse" x="8.63885" y="5.55653" width="12.0229" height="12.0229" fill="black">
+<rect fill="white" x="8.63885" y="5.55653" width="12.0229" height="12.0229"/>
+<use xlink:href="#stroke4_0_29"/>
+</mask>
+<path d="M16.2748 16.2435L16.4796 15.3215C16.6929 14.361 16.4828 13.3551 15.9028 12.5603L16.1142 12.1238C17.0974 12.086 18.0168 11.6272 18.6381 10.8643L19.2346 10.1319L11.4248 10.1223L16.2748 16.2435Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke5_0_29)"/>
+</g>
+<g id="Vector 830">
+<use xlink:href="#stroke6_0_29" fill="#F8651B"/>
+<mask id="stroke7_0_29" maskUnits="userSpaceOnUse" x="-0.518947" y="5.60407" width="12.2942" height="12.2942" fill="black">
+<rect fill="white" x="-0.518947" y="5.60407" width="12.2942" height="12.2942"/>
+<use xlink:href="#stroke6_0_29"/>
+</mask>
+<path d="M0.847078 10.4701L1.49508 11.1573C2.17009 11.8731 3.12038 12.264 4.1037 12.2304L4.34622 12.6505C3.82542 13.4852 3.68882 14.5036 3.97125 15.4461L4.24237 16.3509L8.63558 9.89395L0.847078 10.4701Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke7_0_29)"/>
+</g>
+</g>
+<defs>
+<path id="stroke0_0_29" d="M3.60226 1.87654L3.80704 0.954472L8.65705 7.07576L0.847272 7.06609L1.44372 6.3337C2.06503 5.57079 2.98445 5.11197 3.96763 5.0742L4.17904 4.63766C3.59906 3.84288 3.38894 2.83703 3.60226 1.87654Z"/>
+<path id="stroke2_0_29" d="M18.5868 6.04072L19.2348 6.72791L11.4463 7.30405L15.8395 0.847083L16.1106 1.75187C16.393 2.69436 16.2564 3.71279 15.7356 4.54755L15.9782 4.96761C16.9615 4.93396 17.9118 5.32488 18.5868 6.04072Z"/>
+<path id="stroke4_0_29" d="M16.4796 15.3215L16.2748 16.2435L11.4248 10.1223L19.2346 10.1319L18.6381 10.8643C18.0168 11.6272 17.0974 12.086 16.1142 12.1238L15.9028 12.5603C16.4828 13.3551 16.6929 14.361 16.4796 15.3215Z"/>
+<path id="stroke6_0_29" d="M1.49508 11.1573L0.847078 10.4701L8.63558 9.89395L4.24237 16.3509L3.97125 15.4461C3.68882 14.5036 3.82542 13.4852 4.34622 12.6505L4.1037 12.2304C3.12038 12.264 2.17009 11.8731 1.49508 11.1573Z"/>
+</defs>
+</svg>

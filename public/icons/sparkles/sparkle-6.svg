@@ -1,0 +1,42 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20.0814" height="19.671" viewBox="0 0 20.0814 19.671" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Group 1000001132">
+<g id="Vector 827">
+<use xlink:href="#stroke0_0_4" fill="#F8651B"/>
+<mask id="stroke1_0_4" maskUnits="userSpaceOnUse" x="-0.580081" y="0.849743" width="12.0229" height="12.0229" fill="black">
+<rect fill="white" x="-0.580081" y="0.849743" width="12.0229" height="12.0229"/>
+<use xlink:href="#stroke0_0_4"/>
+</mask>
+<path d="M3.80684 2.18562L3.60205 3.10769C3.38874 4.06818 3.59885 5.07402 4.17883 5.86881L3.96742 6.30535C2.98425 6.34312 2.06482 6.80194 1.44352 7.56485L0.847068 8.29724L8.65684 8.3069L3.80684 2.18562Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke1_0_4)"/>
+</g>
+<g id="Vector 828">
+<use xlink:href="#stroke2_0_4" fill="#F8651B"/>
+<mask id="stroke3_0_4" maskUnits="userSpaceOnUse" x="7.12254" y="-0.715212" width="12.7279" height="12.7279" fill="black">
+<rect fill="white" x="7.12254" y="-0.715212" width="12.7279" height="12.7279"/>
+<use xlink:href="#stroke2_0_4"/>
+</mask>
+<path d="M18.4362 5.64875L17.6325 5.15269C16.7952 4.63595 15.7761 4.5043 14.835 4.79131L14.492 4.44833C14.779 3.50722 14.6474 2.48814 14.1306 1.65086L13.6346 0.847075L11.0622 8.22107L18.4362 5.64875Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke3_0_4)"/>
+</g>
+<g id="Vector 829">
+<use xlink:href="#stroke4_0_4" fill="#F8651B"/>
+<mask id="stroke5_0_4" maskUnits="userSpaceOnUse" x="8.63864" y="6.78768" width="12.0229" height="12.0229" fill="black">
+<rect fill="white" x="8.63864" y="6.78768" width="12.0229" height="12.0229"/>
+<use xlink:href="#stroke4_0_4"/>
+</mask>
+<path d="M16.2746 17.4747L16.4794 16.5526C16.6927 15.5921 16.4826 14.5863 15.9026 13.7915L16.114 13.355C17.0972 13.3172 18.0166 12.8584 18.6379 12.0955L19.2344 11.3631L11.4246 11.3534L16.2746 17.4747Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke5_0_4)"/>
+</g>
+<g id="Vector 830">
+<use xlink:href="#stroke6_0_4" fill="#F8651B"/>
+<mask id="stroke7_0_4" maskUnits="userSpaceOnUse" x="0.229426" y="7.65828" width="12.7279" height="12.7279" fill="black">
+<rect fill="white" x="0.229426" y="7.65828" width="12.7279" height="12.7279"/>
+<use xlink:href="#stroke6_0_4"/>
+</mask>
+<path d="M1.64364 14.0222L2.44742 14.5183C3.2847 15.035 4.30379 15.1667 5.24489 14.8797L5.58787 15.2227C5.30087 16.1638 5.43251 17.1829 5.94925 18.0201L6.44531 18.8239L9.01764 11.4499L1.64364 14.0222Z" stroke-width="1.69412" stroke-linecap="round" stroke-linejoin="round" stroke="#F8651B" mask="url(#stroke7_0_4)"/>
+</g>
+</g>
+<defs>
+<path id="stroke0_0_4" d="M3.60205 3.10769L3.80684 2.18562L8.65684 8.3069L0.847068 8.29724L1.44352 7.56485C2.06482 6.80194 2.98425 6.34312 3.96742 6.30535L4.17883 5.86881C3.59885 5.07402 3.38874 4.06818 3.60205 3.10769Z"/>
+<path id="stroke2_0_4" d="M17.6325 5.15269L18.4362 5.64875L11.0622 8.22107L13.6346 0.847075L14.1306 1.65086C14.6474 2.48814 14.779 3.50722 14.492 4.44833L14.835 4.79131C15.7761 4.5043 16.7952 4.63595 17.6325 5.15269Z"/>
+<path id="stroke4_0_4" d="M16.4794 16.5526L16.2746 17.4747L11.4246 11.3534L19.2344 11.3631L18.6379 12.0955C18.0166 12.8584 17.0972 13.3172 16.114 13.355L15.9026 13.7915C16.4826 14.5863 16.6927 15.5921 16.4794 16.5526Z"/>
+<path id="stroke6_0_4" d="M2.44742 14.5183L1.64364 14.0222L9.01764 11.4499L6.44531 18.8239L5.94925 18.0201C5.43251 17.1829 5.30087 16.1638 5.58787 15.2227L5.24489 14.8797C4.30379 15.1667 3.2847 15.035 2.44742 14.5183Z"/>
+</defs>
+</svg>

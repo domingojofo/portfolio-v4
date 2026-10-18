@@ -1,0 +1,1119 @@
+/* =========================================================================
+   Tokens
+   ========================================================================= */
+:root {
+  --stage: #D9D9D2;       /* paper (Figma "Paper texture") */
+  --line: rgb(15 33 50 / .3);
+  --ink: #1D344A;
+  --hl: #F8651B;          /* logo orange */
+
+  --serif: var(--font-gelica), Georgia, serif;
+  --sans: var(--font-public-sans), system-ui, sans-serif;
+
+  /* Width of the project panels (breakout, after robwinters.github.io): wider than the 960px
+     text column, up to 1440px, always leaving at least 48px each side. The hero's outer grid
+     lines use the same width, so they line up with the panels' edges. */
+  --panel-w: clamp(min(960px, 100vw - 48px), 100vw - 96px, 1440px);
+
+  /* Desktop bottom dock (nav links / Menu button) height */
+  --dock: 6svh;
+
+  /* Paper grain (fine speckle + soft blotches), used by .paper and a few panels */
+  --grain:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4  0 0 0 0 .34  0 0 0 0 .25  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { background: var(--stage); scroll-behavior: smooth; }
+body {
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow-x: clip;
+}
+a { color: inherit; }
+
+/* Dot grid (DotGrid.tsx): a fixed canvas behind the page draws the dots, the warped floor and the
+   hover glow. This CSS background is only the fallback before / without JS. */
+.dot-grid {
+  --dot-gap: 28px;                 /* must match GAP in DotGrid.tsx */
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at center, rgb(15 33 50 / .12) 1px, transparent 1.5px);
+  background-size: var(--dot-gap) var(--dot-gap);
+}
+.dot-grid canvas { display: block; width: 100%; height: 100%; }
+.dot-grid.is-live { background: none; }   /* the canvas draws every dot (and the warped floor) */
+
+/* Paper grain: fixed behind the whole page, so it doesn't zoom with the hero or scroll with content.
+   It sits over the dot grid, so the dots pick up the same printed texture. */
+.paper {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: .26;
+  mix-blend-mode: multiply;
+}
+
+/* =========================================================================
+   Intro state
+   <html data-intro="playing"> is set before first paint when the hero intro will play
+   (see the inline script in app/layout.tsx). Everything below defaults to the finished
+   state, so pages that skip the intro — /design, return visits — render complete at once.
+   ========================================================================= */
+
+/* =========================================================================
+   Hero ("Hey") — Figma "Hero — Final frame (1440)"
+   Headline at the top, intro copy centred above the work deck, whose cards peek 10vh up from
+   the bottom. No orange in the hero.
+   ========================================================================= */
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 600px;
+  color: #0F2132;
+}
+.hero-title {
+  position: absolute;
+  top: 60px;
+  left: 16px; right: 16px;
+  text-align: center;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(36px, 5.35vw, 104px);   /* 77px at 1440 */
+  line-height: .95;
+  letter-spacing: -0.03em;
+}
+.gelica-light, .gelica-xlight { font-family: var(--serif); font-style: italic; }
+.gelica-light { font-weight: 300; }
+.gelica-xlight { font-weight: 200; }
+.hero-title .rv-scr { color: rgb(15 33 50 / .35); }   /* scrambling letters: muted ink, not orange */
+
+/* Parallax layer for the intro copy (Hero.tsx moves it as you scroll, desktop) */
+.bio-drift { position: absolute; inset: 0; pointer-events: none; }
+.bio-drift .bio { pointer-events: auto; }
+
+/* Intro copy, clear of the deck's peeking cards */
+.bio {
+  position: absolute;
+  left: 50%;
+  bottom: calc(10svh + 56px);
+  width: min(352px, 100% - 32px);
+  translate: -50% 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.4;
+}
+html[data-intro="playing"] .bio { opacity: 0; }
+
+/* =========================================================================
+   Work deck (WorkDeck.tsx) — stack of project cards after the hero
+   The section is tucked up under the hero so the top of the stack peeks 10vh into it. Scrolling
+   brings it up to fill the screen; clicking (tabs, or a peeking card) switches the front card.
+   ========================================================================= */
+.deck {
+  --stack-top: 9svh;               /* top edge of the furthest card shown, once pinned */
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  margin-top: calc(-10svh - var(--stack-top));
+  pointer-events: none;            /* the transparent stage mustn't block the hero's copy */
+}
+/* Under the edge blurs (100+) like the rest of the page; the tabs live outside it, above the blur */
+/* The stage reaches --lift above the screen (it still pins at the same moment): the warp can lift
+   the cards above the stage's normal top edge, and overflow: hidden would clip them there. It
+   stays hidden so cards sliding out the bottom don't lengthen the page. */
+.deck { --lift: 30svh; display: flow-root; }   /* flow-root: the stage's negative margin mustn't merge with the deck's own */
+.deck-stage {
+  position: sticky; top: calc(-1 * var(--lift)); z-index: 1;
+  height: calc(100svh + var(--lift));
+  margin-top: calc(-1 * var(--lift));
+  overflow: hidden;
+}
+.deck-cards {
+  list-style: none; margin: 0; padding: 0;
+  transition: opacity .7s ease, translate .9s cubic-bezier(.22, 1, .36, 1);
+}
+html[data-intro="playing"] .deck-cards { opacity: 0; translate: 0 40px; }   /* rises in after the headline */
+.deck-card {
+  position: absolute;
+  left: 50%;
+  /* front card: below the stack, two even steps deep (--stack-y, set by WorkDeck) */
+  top: calc(var(--lift) + var(--stack-top) + var(--stack-y, 120px));
+  width: calc(min(982px, 68vw, calc((91svh - 290px) * 1.65)) * .75);   /* 75% of the size that fits between the stack and the tabs */
+  transform-origin: 50% 0;
+  background: var(--stage);
+  border-radius: 4px;
+  box-shadow: 0 -1px 0 rgb(15 33 50 / .04), 0 10px 30px rgb(15 33 50 / .08);
+  pointer-events: auto;
+  will-change: transform;
+}
+.deck-card { cursor: pointer; }
+/* Switching (WorkDeck): cards glide to their new place in the stack */
+.deck-cards.is-switching .deck-card { transition: transform .6s cubic-bezier(.22, 1, .36, 1), opacity .5s ease; }
+/* Pixel dissolve (src/lib/pixelCard.ts): the canvas stands in for the card while it runs */
+.deck-card.px-active { background: transparent; box-shadow: none; pointer-events: none; }
+.deck-card.px-active > .deck-link { visibility: hidden; }
+.px-canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; pointer-events: none; }
+.deck-link { display: block; padding: clamp(10px, 1.1vw, 16px); color: #0F2132; text-decoration: none; }
+.deck-link:focus-visible { outline: 2px solid #0F2132; outline-offset: 4px; }
+.deck-img { display: block; aspect-ratio: 1376 / 616; border-radius: 3px; overflow: hidden; background: #ECECE8; }
+.deck-img img { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .6s cubic-bezier(.22, 1, .36, 1); }
+.deck-link:hover .deck-img img { scale: 1.02; }
+.deck-text { display: grid; gap: 8px; margin-top: 16px; padding: 0 8px 8px; }
+.deck-title { font-family: var(--serif); font-weight: 300; font-size: clamp(26px, 2.5vw, 38px); line-height: 1.05; }
+.deck-summary { max-width: 560px; font-size: 15px; line-height: 1.4; color: rgb(15 33 50 / .75); }
+
+/* Project tabs, centred just under the front card (WorkDeck sets top); always shown */
+.deck-tabs {
+  position: absolute;
+  z-index: 10;                     /* above the cards, so one sliding out passes under the tabs */
+  left: 50%; top: 0;
+  translate: -50% 0;
+  display: flex; gap: 4px;
+  padding: 6px;
+  border-radius: 10px;
+  background: #fff;
+  pointer-events: auto;
+}
+.deck-tabs button {
+  border: 0; border-radius: 6px;
+  padding: 8px 14px;
+  background: none;
+  font: inherit; font-size: 14px; color: #0F2132;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.deck-tabs button:hover { background: rgb(15 33 50 / .06); }
+.deck-tabs button[aria-current] { background: #1D344A; color: var(--stage); }
+.deck-tabs button:focus-visible { outline: 2px solid #0F2132; outline-offset: 2px; }
+
+/* Thumbnails floating around the deck for the project in front (desktop) */
+.deck-sat {
+  position: absolute;
+  width: clamp(140px, 13vw, 200px);
+  margin: 0;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--stage);
+  box-shadow: 0 6px 20px rgb(15 33 50 / .1);
+  opacity: 0;
+}
+/* Each thumbnail comes in once the deck has scrolled a little further (WorkDeck), and again on a
+   project switch (new thumbnails mount already .is-in, so the animation replays) */
+.deck-sat.is-in { opacity: 1; animation: sat-in .6s cubic-bezier(.22, 1, .36, 1) both; }
+.deck-sat img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; }
+.deck-sat figcaption {
+  position: absolute; top: 14px; right: -10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #1D344A; color: var(--stage);
+  font-size: 12px;
+}
+.deck-sat-1 { left: 8vw;  top: calc(var(--lift) + 14svh); rotate: -2deg; }
+.deck-sat-2 { left: 5vw;  top: calc(var(--lift) + 58svh); rotate: 1.5deg; animation-delay: .08s; }
+.deck-sat-3 { right: 7vw; top: calc(var(--lift) + 20svh); rotate: 2deg; animation-delay: .16s; }
+.deck-sat-4 { right: 5vw; top: calc(var(--lift) + 62svh); rotate: -1.5deg; animation-delay: .24s; }
+.deck-sats { transition: opacity .4s ease; }
+@keyframes sat-in { from { opacity: 0; transform: translateY(14px) scale(.96); } }
+
+/* =========================================================================
+   Closing section (Closing.tsx) — Figma "Hero — Final frame (1440)", lower part:
+   text wall, ticker, text wall, giant words
+   ========================================================================= */
+.closing { position: relative; margin-top: -20svh; padding: 12svh 0 calc(var(--dock) + 72px);   /* half the old gap under the deck */ color: #0F2132; overflow-x: clip; }
+
+/* Text wall (Wall.tsx): faint rows of "CALLOUSED HANDS"; letters in a circle around the cursor darken */
+.wall { display: grid; gap: 8px; padding: 0 12px; overflow: hidden; }
+.wall-row { display: flex; gap: 2px; white-space: nowrap; font-weight: 200; font-size: 16px; line-height: 1.4; text-transform: uppercase; }
+.wall-item { flex: none; color: rgb(29 52 74 / .4); }
+.wl { transition: color .45s ease; }
+
+/* Ticker between the walls: two identical groups slide left by one group's width (seamless loop) */
+.marquee { overflow: hidden; margin: 0 0 4px; }
+.marquee-track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
+.marquee-group { display: flex; margin: 0; padding: 0; list-style: none; }
+.marquee-group li { display: flex; align-items: center; gap: 24px; height: 66px; padding-left: 24px; }
+.marquee-group span {
+  font-family: var(--serif); font-weight: 300;
+  font-size: 24px; line-height: .9; text-transform: uppercase; white-space: nowrap;
+  color: #1D344A;
+}
+.marquee-sep { display: block; flex: none; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Giant words (Figma: Gelica ExtraLight 202.8px at 1440, −4% tracking): "Relentless" starts at
+   37vw, "Collaboration" just off the left edge */
+.giant {
+  margin: 14svh 0 0;
+  padding: 0 1.2vw;
+  font-family: var(--serif); font-weight: 200;
+  font-size: 14.08vw; line-height: .94; letter-spacing: -0.04em;
+  color: #0F2132;
+}
+.giant > span { display: block; }   /* one line each (RevealWords' <br> isn't needed) */
+.giant br { display: none; }
+.giant > span:first-child { padding-left: 35.9vw; }
+.giant .rv-scr { color: rgb(15 33 50 / .35); }
+@media (max-width: 720px) { .giant > span:first-child { padding-left: 22vw; } }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+/* =========================================================================
+   Word reveal ("Relentlessly Collaborative") — see src/lib/reveal.ts
+   Each word is masked by clip-path (not overflow, which would move the inline-block's baseline)
+   and drops in from just above its slot, small, then grows from its top centre into place.
+   The mask reaches a little past the sides and bottom so descenders and wide scramble glyphs
+   aren't cut.
+   ========================================================================= */
+.rv-w { display: inline-block; clip-path: inset(-0.12em -0.3em -0.3em -0.3em); }
+.rv-in { display: inline-block; white-space: nowrap; transform-origin: 50% 0; }
+.rv-scr { color: var(--hl); }                 /* letters still scrambling */
+em .rv-scr { color: var(--ink); }             /* …in ink on the orange word */
+/* Parked out of sight until the reveal starts, so the finished text never flashes first:
+   the hero while its intro is armed (until Hero adds .is-running — after that the reveal owns the
+   words, so the rule must not snap them back when it finishes), and RevealHeading headings until
+   they mount */
+html[data-intro="playing"] .hero:not(.is-running) .hero-title .rv-in,
+.rv-pending .rv-in { transform: translateY(-120%) scale(.2); }
+@media (prefers-reduced-motion: reduce) {
+  html[data-intro="playing"] .hero:not(.is-running) .hero-title .rv-in, .rv-pending .rv-in { transform: none; }
+}
+
+/* "Jofo!" — underline draws in and the photo pops up on hover / focus */
+.name {
+  position: relative;
+  color: var(--hl);
+  cursor: default;
+  outline: none;
+}
+.name::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .25s cubic-bezier(.22,1,.36,1);
+}
+.name-photo {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 10px);
+  width: 112px;
+  height: 112px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgb(15 33 50 / .18);
+  opacity: 0;
+  transform: translateY(6px) scale(.96);
+  transform-origin: bottom left;
+  transition: opacity .2s ease, transform .3s cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+.name:hover::after, .name:focus-visible::after { transform: scaleX(1); }
+.name:hover .name-photo, .name:focus-visible .name-photo { opacity: 1; transform: none; }
+
+.company { white-space: nowrap; }
+.company img { display: inline-block; vertical-align: -2px; margin-right: 3px; }
+
+/* =========================================================================
+   Design page (/design)
+   ========================================================================= */
+.design { position: relative; }
+.design-inner {
+  position: relative;
+  max-width: 960px;                /* text column (after robwinters.github.io); panels break out */
+  margin: 0 auto;
+  padding: 160px 24px 200px;
+  box-sizing: content-box;
+}
+.design h1, .page h1 {
+  max-width: 720px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.design h1 { margin-bottom: 48px; }
+
+/* minmax(0, 1fr): the column never grows past the screen to fit a card's minimum width.
+   Breakout (after robwinters.github.io): the text stays in the 960px column, but the project
+   panels grow past it on wider windows, up to 1440px, always leaving at least 48px each side.
+   On narrow screens 100vw − 96px is smaller than the column, so they simply fill it. */
+.project-list {
+  width: var(--panel-w);
+  margin-left: calc((100% - var(--panel-w)) / 2);
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.project-list > li { min-width: 0; }
+/* Panels: softly rounded, 6px at 960px wide growing to 9px at 1440px */
+.project-list :is(.project-card, .td-card, .banks-card, .va-card, .chipp-card) {
+  border-radius: clamp(6px, (100vw - 96px) * .00625, 9px);
+  overflow: hidden;
+}
+/* Company intros (in the 960px text column): name and role on the left, a short summary on the right */
+.company-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 960px;                /* the text column, while the panels around it break out */
+  margin-inline: auto;
+  padding: 120px 0 16px;
+}
+.company-intro:first-child { padding-top: 24px; }
+.company-name { font-family: var(--serif); font-weight: 400; font-size: clamp(26px, 2.4vw, 34px); line-height: 1.1; }
+.company-meta { margin-top: 8px; font-size: 15px; }
+.company-summary { max-width: 520px; font-size: 17px; line-height: 1.5; }
+@media (max-width: 640px) {
+  .company-intro { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 72px; }
+}
+.project-card { display: block; text-decoration: none; }
+.project-card img { display: block; width: 100%; height: auto; }
+.project-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 15px;
+}
+/* Two cards side by side. Columns are weighted by each card's aspect ratio (3:2 photo, 2:3
+   portrait) so both come out the same height. */
+.project-row {
+  display: grid;
+  grid-template-columns: 1.5014fr .6667fr;
+  gap: clamp(16px, 16px + (100vw - 1056px) / 60, 24px);   /* 16px at 960px wide → 24px at 1440px */
+  align-items: start;
+}
+.project-row > * { min-width: 0; }
+@media (max-width: 640px) {
+  .project-row { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+.project-card-title { font-family: var(--serif); font-size: 20px; }
+.project-card:hover .project-card-title { color: var(--hl); }
+.muted { color: rgb(29 52 74 / .65); }
+
+/* =========================================================================
+   Simple pages: About, Reading, Writing, full project pages
+   ========================================================================= */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 160px 24px 200px;
+  box-sizing: content-box;
+  font-size: 17px;
+  line-height: 1.6;
+}
+.page h1 { margin-bottom: 32px; }
+.page h2 { font-family: var(--serif); font-weight: 400; font-size: 28px; margin: 48px 0 12px; }
+.page p + p, .page ul { margin-top: 16px; }
+.page.wide { max-width: 960px; }
+
+.list { list-style: none; padding: 0; border-top: 1px solid var(--line); }
+.list li { border-bottom: 1px solid var(--line); }
+.list a, .list .row { display: flex; justify-content: space-between; gap: 24px; padding: 20px 0; text-decoration: none; }
+.list a:hover .list-title { color: var(--hl); }
+.list-title { font-family: var(--serif); font-size: 22px; }
+.list time, .list .row > .muted { flex: none; white-space: nowrap; }
+
+/* Project content (shared by the modal and the full page) */
+.project h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 56px); line-height: 1.08; }
+.project-meta { display: flex; gap: 24px; margin: 16px 0 32px; font-size: 15px; }
+.project img { display: block; width: 100%; height: auto; }
+.project p { margin-top: 32px; max-width: 720px; font-size: 17px; line-height: 1.6; }
+
+/* =========================================================================
+   Writing: sidebar of every entry + the open entry (WritingShell)
+   The sidebar is sticky and scrolls on its own; the entry scrolls with the page, under the
+   edge blur. Hiding the sidebar fades it out, then drops it from the grid so the entry centres.
+   ========================================================================= */
+.writing {
+  display: grid;
+  grid-template-columns: clamp(240px, 36%, 480px) 1fr;
+  min-height: 100svh;
+}
+.writing[data-gone="true"] { grid-template-columns: 1fr; }
+
+/* "Esc · Hide sidebar" chip, pinned top-left under the nav */
+.writing-toggle {
+  position: fixed;
+  top: 96px; left: 24px;
+  z-index: 50;
+  display: flex; align-items: center; gap: 8px;
+  height: 28px;
+  padding: 0 10px 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--stage);
+  font: inherit; font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.writing-toggle:hover { color: var(--hl); border-color: var(--hl); }
+.writing-toggle:focus-visible { outline: 2px solid var(--hl); outline-offset: 3px; }
+.writing-toggle kbd {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(29 52 74 / .08);
+  font-family: inherit; font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.writing-sidebar {
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 148px 32px 120px 24px;
+  border-right: 1px solid var(--line);
+  /* Titles fade out as they scroll up under the chip, and at the bottom edge */
+  -webkit-mask: linear-gradient(transparent 112px, #000 148px, #000 calc(100% - 80px), transparent);
+          mask: linear-gradient(transparent 112px, #000 148px, #000 calc(100% - 80px), transparent);
+  transition: opacity .28s ease, transform .28s ease;
+}
+.writing-sidebar::-webkit-scrollbar { display: none; }
+.writing[data-open="false"] .writing-sidebar { opacity: 0; transform: translateX(-12px); }
+.writing[data-gone="true"] .writing-sidebar { display: none; }
+
+.writing-heading { display: none; }     /* phone only — on desktop the entry title is the heading */
+.writing-list { list-style: none; padding: 0; }
+.writing-item { display: flex; align-items: flex-start; gap: 10px; padding: 14px 0; text-decoration: none; }
+.writing-item:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; }
+.writing-arrow { flex: none; margin-top: 6px; font-size: 9px; color: var(--hl); opacity: 0; transition: opacity .2s; }
+.writing-item[aria-current="page"] .writing-arrow { opacity: 1; }
+.writing-item-title {
+  display: block;
+  font-family: var(--serif); font-size: 20px; line-height: 1.2;
+  color: rgb(29 52 74 / .55);
+  transition: color .2s;
+}
+.writing-item:hover .writing-item-title,
+.writing-item[aria-current="page"] .writing-item-title { color: var(--ink); }
+.writing-item-meta { display: flex; gap: 8px; margin-top: 6px; font-size: 12px; color: rgb(29 52 74 / .5); }
+.writing-item[aria-current="page"] .writing-item-meta { color: rgb(29 52 74 / .75); }
+
+/* The entry: left-aligned beside the sidebar, centred once it's gone */
+.writing-main { min-width: 0; padding: 148px 48px 200px; }
+.writing-back { display: none; }
+.writing-entry { max-width: 680px; }
+.writing[data-gone="true"] .writing-entry { margin-inline: auto; }
+.writing-entry h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.writing-entry-meta { display: flex; gap: 8px; margin: 16px 0 48px; font-size: 14px; }
+
+.writing-prose { font-size: 18px; line-height: 1.75; overflow-wrap: break-word; }
+.writing-prose > * + * { margin-top: 1.2em; }
+.writing-prose h2, .writing-prose h3 { font-family: var(--serif); font-weight: 400; line-height: 1.2; margin-top: 1.8em; }
+.writing-prose h2 { font-size: 30px; }
+.writing-prose h3 { font-size: 24px; }
+.writing-prose h2 + *, .writing-prose h3 + * { margin-top: .6em; }
+.writing-prose ul, .writing-prose ol { padding-left: 1.3em; }
+.writing-prose li + li { margin-top: .4em; }
+.writing-prose a { text-decoration-color: var(--hl); text-underline-offset: 3px; }
+.writing-prose a:hover { color: var(--hl); }
+.writing-prose blockquote { padding-left: 1.2em; border-left: 2px solid var(--hl); font-style: italic; }
+.writing-prose hr { border: 0; border-top: 1px solid var(--line); margin-block: 2.4em; }
+.writing-prose img { display: block; max-width: 100%; height: auto; }
+.writing-prose code { font-size: .9em; }
+
+/* =========================================================================
+   Project modal
+   ========================================================================= */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  z-index: 200;                     /* above the edge blur strips (100) */
+  background: rgb(15 33 50 / .35);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 72px 24px;
+}
+.modal-panel {
+  position: relative;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 40px;
+  background: var(--stage);
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgb(15 33 50 / .25);
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 8px;
+}
+.modal-close:hover { color: var(--hl); }
+
+/* =========================================================================
+   Nav (top strip) + progressive edge blur
+   Fixed strips at the top and bottom of the viewport. Four stacked backdrop-blur layers,
+   each masked to a narrower band, build a blur that strengthens toward the edge;
+   ::after adds a colour wash that fades out from the edge.
+   ========================================================================= */
+.edge-blur {
+  --edge-tint: 217 217 210;   /* wash colour as "R G B" — matches --stage (#D9D9D2) */
+  --edge-wash: .45;           /* wash strength at the edge (0 = blur only) */
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 100;               /* top layer: page content scrolls underneath; the modal (200) sits above */
+  height: var(--edge-h);
+  pointer-events: none;
+}
+.edge-blur--top    { top: 0;    --edge-h: 96px; --dir: to bottom; z-index: 105; }   /* above the work deck's stage */
+/* The bottom strip is taller and blurs harder than the top (--b1…--b4 are its four layers) */
+.edge-blur--bottom { bottom: 0; --edge-h: 110px; --dir: to top; --b1: 2px; --b2: 5px; --b3: 10px; --b4: 20px; }
+
+/* The strips arrive after the hero intro. The blur layers grow out from the screen edge —
+   growing height rather than fading, because opacity < 1 would switch backdrop-filter off
+   mid-fade. The nav content fades in with them. */
+.edge-fx {
+  position: absolute; left: 0; right: 0; height: 100%;
+  transition: height .6s cubic-bezier(.22,1,.36,1);
+}
+.edge-blur--top    .edge-fx { top: 0; }
+.edge-blur--bottom .edge-fx { bottom: 0; }
+html[data-intro="playing"] .edge-fx { height: 0; }
+.edge-fx > i { position: absolute; inset: 0; }
+.edge-fx > i:nth-child(1) {
+  -webkit-backdrop-filter: blur(var(--b1, 1px)); backdrop-filter: blur(var(--b1, 1px));
+  -webkit-mask: linear-gradient(var(--dir), #000 40%, transparent 100%);
+          mask: linear-gradient(var(--dir), #000 40%, transparent 100%);
+}
+.edge-fx > i:nth-child(2) {
+  -webkit-backdrop-filter: blur(var(--b2, 3px)); backdrop-filter: blur(var(--b2, 3px));
+  -webkit-mask: linear-gradient(var(--dir), #000 25%, transparent 75%);
+          mask: linear-gradient(var(--dir), #000 25%, transparent 75%);
+}
+.edge-fx > i:nth-child(3) {
+  -webkit-backdrop-filter: blur(var(--b3, 6px)); backdrop-filter: blur(var(--b3, 6px));
+  -webkit-mask: linear-gradient(var(--dir), #000 10%, transparent 50%);
+          mask: linear-gradient(var(--dir), #000 10%, transparent 50%);
+}
+.edge-fx > i:nth-child(4) {
+  -webkit-backdrop-filter: blur(var(--b4, 12px)); backdrop-filter: blur(var(--b4, 12px));
+  -webkit-mask: linear-gradient(var(--dir), #000 0%, transparent 28%);
+          mask: linear-gradient(var(--dir), #000 0%, transparent 28%);
+}
+.edge-fx::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--dir), rgb(var(--edge-tint) / var(--edge-wash)), rgb(var(--edge-tint) / 0));
+}
+
+/* Top bar content (Figma 311:8094): logo + name (→ Hey) on the left; location and live time on
+   the right */
+.nav-inner {
+  position: absolute;
+  left: 40px; right: 40px;
+  top: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: auto;
+  transition: opacity .5s ease .15s;
+}
+html[data-intro="playing"] .nav-inner { opacity: 0; pointer-events: none; }
+.logo { display: flex; align-items: center; gap: 7px; text-decoration: none; }
+.logo svg { width: 32px; height: 14px; }
+/* Top bar text: Public Sans Light, all caps */
+.logo-name, .locale { font-family: var(--sans); font-weight: 300; font-size: 15px; text-transform: uppercase; letter-spacing: .02em; color: #1D344A; }
+.logo:focus-visible, .dock a:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
+.locale { display: flex; gap: 6px; }
+.locale { align-items: center; }
+/* NYC skyline mark between the place and the time (masked, so it takes the text colour) */
+.locale-icon {
+  width: 13.43px; height: 16.67px;
+  margin-top: -3px;                /* sits on the text's baseline */
+  background: currentColor;
+  -webkit-mask: url(/icons/nyc.svg) center / contain no-repeat;
+          mask: url(/icons/nyc.svg) center / contain no-repeat;
+}
+.clock { display: inline-block; min-width: 11ch; font-variant-numeric: tabular-nums; color: #8B939A; }
+
+/* Bottom dock (word-nav mode, desktop): page links centred above the blur. On scroll they drop
+   away and the Menu button rises into place. */
+.dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 110;                    /* above the bottom blur strip */
+  height: var(--dock);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity .5s ease .15s;
+}
+.dock > * { pointer-events: auto; }
+.dock [inert] { pointer-events: none; }
+html[data-intro="playing"] .dock { opacity: 0; }
+html[data-intro="playing"] .dock > * { pointer-events: none; }
+.dock-links { display: flex; gap: 28px; list-style: none; padding: 0; font-size: 14px; }
+.dock-links a { text-decoration: none; }
+.dock-links a:hover, .dock-links a[aria-current="page"] { color: var(--hl); }
+
+/* ← → hint, bottom left */
+.nav-hint {
+  position: absolute;
+  left: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+.keycap { display: block; padding: 0; border: 0; background: none; font: inherit; line-height: 0; cursor: pointer; transition: transform .12s ease; }
+.keycap + .keycap { margin-left: -4px; }       /* 4px between the two keys */
+.keycap:hover { transform: translateY(1px); }
+.keycap:hover img { filter: brightness(.85); }
+.keycap:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
+
+/* LinkedIn + CV, bottom right, 20px off the bottom edge */
+.social-corner {
+  position: fixed;
+  right: 40px;
+  bottom: 20px;
+  z-index: 120;
+  gap: 12px;
+  transition: opacity .5s ease .15s;
+}
+html[data-intro="playing"] .social-corner { opacity: 0; pointer-events: none; }
+
+/* Menu button (Figma "Menu ⌘K"): a navy keycap. It rises into the links' place once you scroll;
+   on hover it presses down — the thick bottom edge thins as the key moves 2px. */
+.menu-trigger {
+  position: absolute;
+  left: 50%;                       /* centred via Motion's x: -50% */
+  top: calc(50% - 17px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid #3A4854;
+  border-bottom-width: 3px;
+  border-radius: 4px;
+  background: #1D344A;
+  color: #D9D9D2;
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: normal;
+  cursor: pointer;
+  transition: border-bottom-width .12s ease, background-color .2s ease;
+}
+.menu-trigger:hover, .menu-trigger:focus-visible { border-bottom-width: 1px; background: #22405B; outline: none; }
+.menu-trigger:focus-visible { box-shadow: 0 0 0 2px var(--stage), 0 0 0 4px var(--hl); }
+.menu-trigger-key {
+  padding: 0 2px;
+  border-radius: 2px;
+  background: #3A4854;
+  font-family: var(--sans);
+  font-size: 14px;
+  transition: background-color .2s ease;
+}
+.menu-trigger:hover .menu-trigger-key { background: #4A5C6C; }
+
+/* LinkedIn + CV icons */
+.social { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; }
+.social a { display: block; line-height: 0; }
+.social a:hover { opacity: .7; }
+.social a:focus-visible { outline: 2px solid var(--hl); outline-offset: 3px; }
+/* Icons are 16px boxes; the SVGs carry a stroke that overflows that box slightly (as in Figma) */
+.social-icon { position: relative; display: block; width: 16px; height: 16px; }
+.social-icon img { position: absolute; left: -0.533px; top: -0.533px; }
+.cv-icon { width: 12.8px; }
+.cv-icon span {
+  position: absolute; left: 1.6px; top: 5.87px;
+  font-family: var(--serif); font-size: 8px; line-height: normal; color: var(--ink);
+}
+
+/* =========================================================================
+   Mobile / iPad bottom bar + page menu (hidden on desktop)
+   ========================================================================= */
+.mobile-bar {
+  display: none;
+  position: fixed;
+  left: 16px; right: 16px; bottom: 16px;
+  z-index: 110;                    /* above the bottom blur strip */
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity .5s ease .15s;
+}
+html[data-intro="playing"] .mobile-bar { opacity: 0; pointer-events: none; }
+.page-menu-button {
+  display: flex; align-items: center; gap: 8px;
+  border: 0; background: none; padding: 4px 0;
+  font-family: var(--serif); font-size: 16px; color: var(--hl);
+  cursor: pointer;
+}
+.page-menu-button:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
+
+/* =========================================================================
+   Command menu (⌘K) — ported from portfolio-v2, restyled for v3
+   ========================================================================= */
+.cmdk-root { position: fixed; inset: 0; z-index: 300; }
+.cmdk-backdrop { position: absolute; inset: 0; background: rgb(29 52 74 / .3); backdrop-filter: blur(2px); }
+.cmdk {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--stage);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  box-shadow: 0 24px 60px rgb(29 52 74 / .25);
+  overflow: hidden;
+}
+.cmdk::before {                       /* paper grain */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: var(--grain); opacity: .2; mix-blend-mode: multiply;
+}
+.cmdk > * { position: relative; }
+/* Desktop: a panel anchored under the Menu button, growing out of it */
+.cmdk--panel {
+  top: calc(3vh + 26px);
+  right: 24px;
+  width: min(400px, 100vw - 48px);
+  border-radius: 10px;
+  transform-origin: top right;
+}
+/* Phones / tablets: bottom sheet */
+.cmdk--sheet {
+  left: 0; right: 0; bottom: 0;
+  max-height: 85dvh;
+  border: 0;
+  border-radius: 16px 16px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -12px 40px rgb(29 52 74 / .18);
+}
+.cmdk-grab { flex: none; padding: 10px 0 6px; touch-action: none; cursor: grab; }
+.cmdk-grab::before {
+  content: ""; display: block; width: 36px; height: 5px; margin: 0 auto;
+  border-radius: 3px; background: rgb(29 52 74 / .25);
+}
+.cmdk-input-row { flex: none; padding: 0 16px; border-bottom: 1px dashed var(--line); }
+.cmdk-input {
+  width: 100%;
+  padding: 16px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  outline: none;
+}
+.cmdk-input::placeholder { color: rgb(29 52 74 / .5); }
+.cmdk-list { max-height: min(380px, 55vh); overflow-y: auto; overscroll-behavior: contain; padding: 8px; outline: none; }
+.cmdk--sheet .cmdk-list { flex: 1; max-height: none; }
+.cmdk-group + .cmdk-group { margin-top: 8px; }
+.cmdk-heading {
+  padding: 6px 12px;
+  font-family: var(--sans);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgb(29 52 74 / .55);
+}
+.cmdk-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: var(--serif);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+.cmdk--sheet .cmdk-item { padding: 14px 12px; font-size: 22px; }
+.cmdk-item small { font-family: var(--sans); font-size: 12px; color: rgb(29 52 74 / .55); }
+.cmdk-item[aria-current="page"] small { color: var(--hl); }
+.cmdk-item[aria-selected="true"] { background: var(--ink); color: var(--stage); }
+.cmdk-item[aria-selected="true"] small { color: var(--stage); opacity: .7; }
+.cmdk-empty { padding: 24px 12px; text-align: center; font-size: 14px; color: rgb(29 52 74 / .55); }
+.cmdk-footer {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  color: rgb(29 52 74 / .6);
+}
+.cmdk-footer span { display: inline-flex; align-items: center; gap: 4px; }
+.cmdk-footer kbd {
+  display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  border: 1px solid rgb(29 52 74 / .4);
+  border-radius: 3px;
+  font-family: var(--sans); font-size: 11px; color: var(--ink);
+}
+/* Touch devices have no keyboard shortcuts */
+@media (hover: none) and (pointer: coarse) {
+  .cmdk-footer { display: none; }
+}
+
+/* =========================================================================
+   Icon toolbar (Figma "Navigation") — floating bottom centre
+   ========================================================================= */
+.tb {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 120;                    /* above the edge blur */
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: opacity .5s ease .15s;
+}
+
+html[data-intro="playing"] .tb { opacity: 0; pointer-events: none; }
+
+/* Which nav shows: the icon toolbar by default (html.nav-toolbar); the word nav with ?nav=words */
+html:not(.nav-toolbar) .tb { display: none; }
+html.nav-toolbar .dock { bottom: 20px; height: 49px; }   /* the ← → hint shares the toolbar's centre line */
+html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-button) { display: none; }
+/* On mobile the toolbar owns the bottom, centred and 1.25× bigger with tap areas that cover the
+   whole bar (no dead spots between icons); LinkedIn/CV sit just above it on the right. */
+@media (max-width: 1023px) {
+  html.nav-toolbar .mobile-bar { display: none; }
+  .tb { bottom: max(6px, calc(2vh - 12px)); }
+  html:not(.nav-toolbar) .social-corner { display: none; }   /* the word-nav mobile bar has its own */
+  .social-corner { right: 16px; bottom: calc(max(6px, 2vh - 12px) + 61px + 18px); height: auto; }   /* above the 1.25× toolbar */
+  .logo-name, .locale { font-size: 13px; }   /* name and location stay the same size */
+
+  html.nav-toolbar .tb-bar { height: 61px; gap: 10px; padding: 0 10px; border-radius: 10px; }
+  html.nav-toolbar .tb-item { height: 40px; border-radius: 7px; }
+  html.nav-toolbar .tb-item::after { content: ""; position: absolute; inset: -10.5px -5px; }   /* fills the bar's height and gaps */
+  html.nav-toolbar .tb-icon { width: 35px; -webkit-mask-size: 35px 40px; mask-size: 35px 40px; }
+  html.nav-toolbar .tb-label > span { font-size: 15px; line-height: 25px; padding-right: 10px; }
+}
+/* Very narrow phones (iPhone SE 1st gen): tighter spacing so the bar keeps a margin */
+@media (max-width: 359px) {
+  html.nav-toolbar .tb-bar { gap: 6px; padding: 0 6px; }
+  html.nav-toolbar .tb-item::after { inset: -10.5px -3px; }
+}
+.tb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 49px;
+  padding: 0 8px;
+  border: 1px dashed rgb(13 39 65 / .5);
+  border-radius: 8px;
+  background: rgb(211 210 203 / .7);
+  box-shadow: 0 3px 10px 4px rgb(0 0 0 / .11);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+          backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.tb-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .3s ease;
+}
+/* No focus ring: a focused icon shows the same brackets, arrow and tooltip as hover */
+.tb-item:focus-visible { outline: none; }
+/* Icons are the Figma SVGs used as masks, so one file can be navy, light or white */
+.tb-icon {
+  flex: none;
+  width: 28px;
+  height: 100%;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / 28px 32px no-repeat;
+          mask: var(--icon) center / 28px 32px no-repeat;
+}
+/* Selected: orange keycap, light icon (and its label until you scroll) */
+.tb-item.is-selected {
+  color: #D9D9D2;
+  background: var(--hl);
+  border: 1px solid #FAA87E;
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / .2), inset 0 1px 1px rgb(255 255 255 / .19);
+}
+.tb-label { display: block; overflow: hidden; white-space: nowrap; }
+.tb-label > span {
+  display: block;
+  padding-right: 8px;
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 20px;
+}
+/* Hover: four corner brackets frame the item */
+.tb-brackets { --w: 2px; position: absolute; inset: -1px; pointer-events: none; color: var(--hl); }   /* --w: bracket stroke */
+.tb-brackets i { position: absolute; width: 9px; height: 10px; border: 0 solid currentColor; }
+.tb-brackets i:nth-child(1) { top: 0; left: 0; border-top-width: var(--w); border-left-width: var(--w); border-top-left-radius: 4px; }
+.tb-brackets i:nth-child(2) { top: 0; right: 0; border-top-width: var(--w); border-right-width: var(--w); border-top-right-radius: 4px; }
+.tb-brackets i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: var(--w); border-left-width: var(--w); border-bottom-left-radius: 4px; }
+.tb-brackets i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: var(--w); border-right-width: var(--w); border-bottom-right-radius: 4px; }
+/* The arrow rides above the hovered (or selected) item; its tip dips just into the bar */
+.tb-arrow { position: absolute; left: 0; top: -17px; z-index: 2; line-height: 0; pointer-events: none; }
+/* The arrow always hovers: a gentle up-and-down bob (its position along the bar is animated by Motion) */
+.tb-arrow img { animation: tb-bob 1.6s ease-in-out infinite; }
+@keyframes tb-bob { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .tb-arrow img { animation: none; } }
+.tb-tooltip {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);           /* 4px below the icon */
+  padding: 4px 8px;
+  border: 1px solid rgb(29 52 74 / .3);
+  border-radius: 8px;
+  background: var(--stage);
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  isolation: isolate;
+}
+.tb-tooltip::before {             /* same paper grain as the page, under the text */
+  content: "";
+  position: absolute; inset: 0;
+  z-index: -1;
+  background-image: var(--grain);
+  opacity: .2;
+  mix-blend-mode: multiply;
+}
+
+/* =========================================================================
+   iPad + mobile (below 1024px), from the "iPhone 17" Figma frame
+   ========================================================================= */
+@media (max-width: 1023px) {
+  .hero-title { top: 72px; font-size: clamp(34px, 10.4vw, 64px); }
+  .hero { min-height: 560px; }
+  .bio { font-size: 16px; }
+  .deck-card { width: calc(100vw - 32px); }
+  .deck-tabs { max-width: calc(100vw - 32px); overflow-x: auto; scrollbar-width: none; }
+  .deck-tabs button { flex: none; white-space: nowrap; padding: 8px 10px; font-size: 13px; }
+  .deck-sats { display: none; }
+
+  .edge-blur--bottom { --edge-h: 14vh; }   /* taller on mobile so it backs the 1.25× toolbar */
+  .mobile-bar { bottom: max(6px, calc(2vh - 12px)); }
+
+  /* Top bar is just the logo; pages + LinkedIn/CV live in the bottom bar */
+  .edge-blur--top { --edge-h: 72px; }
+  .nav-inner { left: 16px; right: 16px; height: 46px; }
+  .dock { display: none; }
+  .mobile-bar { display: flex; }
+
+  .design-inner { padding: 96px 16px 160px; }
+  .project-list { width: 100%; margin-left: 0; }
+  .page { padding: 112px 20px 160px; }
+  .modal-backdrop { padding: 56px 12px; }
+  .modal-panel { padding: 48px 20px 24px; }
+
+  .writing-toggle { left: 16px; }
+  .writing-sidebar { padding-left: 16px; }
+  .writing-main { padding: 148px 32px 160px; }
+}
+
+/* Phone: no sidebar. /writing is the list on its own; an entry shows on its own with a back link. */
+@media (max-width: 640px) {
+  .writing { display: block; }
+  .writing-toggle { display: none; }
+  .writing .writing-sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding: 112px 20px 160px;
+    border-right: 0;
+    -webkit-mask: none; mask: none;
+    opacity: 1; transform: none;
+  }
+  .writing[data-view="entry"] .writing-sidebar,
+  .writing[data-view="index"] .writing-main { display: none; }
+
+  .writing-heading {
+    display: block;
+    margin-bottom: 16px;
+    font-family: var(--serif); font-weight: 400;
+    font-size: 32px; line-height: 1.08; letter-spacing: -0.015em;
+  }
+  .writing-arrow { display: none; }
+  .writing-item-title { font-size: 22px; color: var(--ink); }
+  .writing-item-meta { color: rgb(29 52 74 / .65); }
+
+  .writing-main { padding: 96px 20px 160px; }
+  .writing-back {
+    display: inline-block;
+    margin-bottom: 32px;
+    font-size: 13px;
+    text-decoration: none;
+    color: rgb(29 52 74 / .65);
+  }
+  .writing-back:hover { color: var(--hl); }
+  .writing-entry h1 { font-size: 32px; }
+  .writing-entry-meta { margin-bottom: 32px; }
+  .writing-prose { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* =========================================================================
+   Test preloader (?loader) — see Preloader.tsx
+   ========================================================================= */
+.preloader { display: none; }
+html[data-loader="on"] { overflow: hidden; }
+html[data-loader="on"] .preloader {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  color: #ECE5DD;
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: 22px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+}
+.pl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pl-text { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 4vh 0 10vh; overflow: hidden; }
+.pl-group { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; position: relative; }
+.pl-group + .pl-group { border-top: 1px solid #2A2826; }
+.pl-line { position: relative; left: calc(var(--l) * 1%); height: 1em; white-space: nowrap; }   /* --l: start, % of the width */
+.pl-line > span { position: absolute; left: 0; top: 0; will-change: transform, opacity; transform: translateX(-110vw); }
+.pl-ghost { opacity: 0; }
+.pl-count {
+  position: absolute; left: 50%; bottom: 4vh; translate: -50% 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 13px; letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  html[data-loader="on"] .preloader { font-size: 16px; }
+  .pl-line { left: calc(16px + var(--l) * .4%); }   /* same zigzag, compressed to fit a phone */
+}
