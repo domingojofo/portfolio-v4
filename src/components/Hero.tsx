@@ -7,7 +7,7 @@ import { RevealWords, type RevealLine } from "./RevealWords";
 
 const easeOutExpo = "cubic-bezier(.22,1,.36,1)";
 
-// Parallax (all screen sizes): as you scroll, the intro copy drifts down the screen while the work deck's
+// Parallax (all screen sizes): as you scroll, the intro copy drifts down the screen while the project cards'
 // cards rise over it. 0.3 = it moves down 0.3px for every 1px scrolled.
 const BIO_DRIFT = 0.3;
 
@@ -103,8 +103,8 @@ export function Hero() {
       const on = !reduce.matches;
       const y = Math.min(scrollY, innerHeight);
       layer.style.transform = on && y > 0 ? `translate3d(0, ${y * (1 + BIO_DRIFT)}px, 0)` : "";
-      // Fade it out as the deck's cards rise to it, so it never sits on top of them; hidden once the
-      // deck fills the screen, so it doesn't drift on into the closing section
+      // Fade it out as the project cards rise to it, so it never sits on top of them; hidden once
+      // the deck fills the screen, so it doesn't drift on into the closing section
       const fade = Math.min(1, Math.max(0, (scrollY - innerHeight * 0.15) / (innerHeight * 0.3)));
       layer.style.opacity = on ? String(1 - fade) : "";
       layer.style.visibility = on && fade >= 1 ? "hidden" : "";
@@ -121,8 +121,8 @@ export function Hero() {
   }, []);
 
   return (
-    // Figma "Hero — Final frame (1440)": headline at the top, intro copy above the work deck,
-    // whose cards peek up from the bottom (WorkDeck, rendered after the hero)
+    // Figma "Hero — Final frame (1440)": headline at the top, intro copy above the project cards,
+    // whose cards peek up from the bottom (ProjectCards, rendered after the hero)
     <section className="hero" id="hey" ref={heroRef}>
       <h1 className="hero-title" aria-label="Shipping Outcomes from Thoughtfully Crafted Products and Systems">
         <RevealWords lines={HEADLINE} />

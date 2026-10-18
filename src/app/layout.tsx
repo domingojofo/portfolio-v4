@@ -47,7 +47,7 @@ const introScript = `try{if(location.pathname==="/"&&!sessionStorage.getItem(${J
 const loaderScript = `try{if(new URLSearchParams(location.search).has("loader")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.dataset.loader="on";sessionStorage.removeItem(${JSON.stringify(INTRO_KEY)})}}catch(e){}`;
 
 // Until the web fonts have loaded, text with display:block fonts is invisible while images aren't —
-// so the work deck would show before the hero headline. html.fonts-loading holds the deck back
+// so the project cards would show before the hero headline. html.fonts-loading holds the deck back
 // (globals.css) until the fonts are ready, or 3s at most.
 const fontsScript = `try{var h=document.documentElement;h.classList.add("fonts-loading");var d=function(){h.classList.remove("fonts-loading")};document.fonts.ready.then(d);setTimeout(d,3000)}catch(e){}`;
 

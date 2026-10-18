@@ -173,7 +173,7 @@ export function Nav() {
       <header className="edge-blur edge-blur--top">
         <EdgeFx />
         <div className="nav-inner">
-          <Link className="logo" href="/" aria-label="Jofo Domingo — Hey" onClick={replayIntro}>
+          <Link className="logo" href="/" aria-label="Jofo Domingo — Design" onClick={replayIntro}>
             <Logo />
             <span className="logo-name">Jofo Domingo</span>
           </Link>

@@ -1,5 +1,5 @@
 // How warped the page's lower half is: 1 = fully warped (top of the home page), 0 = flat. The work
-// deck sets it from the scroll position; the dot grid and the deck's cards both read it.
+// deck sets it from the scroll position; the dot grid and the project cards both read it.
 // Everything outside (bottom blur, toolbar, ← → hint, LinkedIn/CV) is fixed UI and never warps.
 //
 // The warp is a curl out: above the hinge line (mid-hero) the page is flat; below it the page

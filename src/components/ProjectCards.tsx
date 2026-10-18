@@ -4,15 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { projects } from "@/content/projects";
+import { Cover } from "./Cover";
 import { pixelCard } from "@/lib/pixelCard";
 import { makeBend, setWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/warp";
 
-// Work deck (after the Melius "use cases" section): a stack of project cards after the hero.
+// Project cards (after the Melius "use cases" section): a stack of project cards after the hero.
 // The front card shows a project preview; the other two wait behind it, evenly spaced, each a
 // little smaller and peeking out above — all three are always shown. Scrolling doesn't flip
 // through them — clicking does (a tab, or a card peeking out behind): it comes to the front, and
-// the cards that were in front of it slide down half their height and fade out (under the project
-// tabs), then pixelate back in at the back (a little blurred, sharpening) in the order they left.
+// the cards that were in front of it slide straight down off the screen with an ease-out (under the
+// project tabs), then pixelate back in at the back (a little blurred, sharpening) in the order they left.
 // So the stack rotates: from Cash → Trusted Destinations, Cash goes to the back.
 // Clicking the front card opens the project. The top of the stack peeks 10vh into the hero,
 // packed tight so all three cards show; scrolling down spreads them out to their full spacing.
@@ -28,16 +29,32 @@ const STEP_Y = 60;       // px each card behind sits higher (at a 982px-wide car
                          // enough past the card's padding to show a band of its image…
 const STEP_TIGHT = 22;   // …and how tight they start, in the hero (the spacing opens up with the scroll)
 const STEP_S = 0.06;     // scale lost per step behind — even steps
-const SHOWN = 2;         // cards visible behind the front one
-const OUT_MS = 600, IN_MS = 520, IN_GAP = 150;   // slide down + fade out → pixelate back in
+const SHOWN = projects.length - 1;   // cards visible behind the front one: all of them
+const GROUP = 0.95;      // the stack + front card + tabs take up this much of the space between the top bar and the floating nav
+const TABS_GAP = 20;     // px between the front card and the tabs
+const OUT_MS = 620, IN_MS = 520, IN_GAP = 150;   // slide down and away (ease-in) → pixelate back in
 const SAT_STEP = 0.06;   // viewport heights of scrolling between one thumbnail appearing and the next
 const LEAN = 0.45;       // share of the curl's slope the cards lean by — the full slope is too steep for a card
 const MAX_LEAN = 32 * Math.PI / 180;
 
-export function WorkDeck() {
+export function ProjectCards() {
   const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [satsIn, setSatsIn] = useState(0);   // how many floating thumbnails have appeared
+  const [satFor, setSatFor] = useState<number | null>(0);   // whose thumbnails are showing (null mid-switch)
+  const satTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(satTimer.current), []);
+  // A small random nudge per thumbnail, re-rolled whenever a project comes to the front (rolled on
+  // the client only, after mount, so server and client HTML match)
+  const [jitter, setJitter] = useState<{ x: number; y: number }[]>([]);
+  const rollJitter = () => {
+    const r = (n: number) => Math.round((Math.random() * 2 - 1) * n);
+    setJitter(Array.from({ length: 4 }, () => ({ x: r(28), y: r(22) })));
+  };
+  useEffect(() => {
+    const raf = requestAnimationFrame(rollJitter);
+    return () => cancelAnimationFrame(raf);
+  }, []);
   const orderRef = useRef(projects.map((_, i) => i));
   const switchRef = useRef<(leaving: number[]) => void>(() => {});
   const busy = useRef(false);
@@ -120,15 +137,19 @@ export function WorkDeck() {
         const card = cards[i];
         card.inert = true;
         card.style.zIndex = String(cards.length + 1);
-        card.style.transform = at(was[n], card.offsetHeight / 2);   // down half its height…
-        card.style.opacity = "0";                                    // …fading out (no pixels on the way out)
+        // Straight down and off the bottom of the screen with an ease-in (starts gently, then
+        // speeds away) — no fade, no pixels
+        card.style.transition = `transform ${OUT_MS}ms cubic-bezier(.55, 0, .75, .3)`;
+        card.style.transform = at(was[n], innerHeight);
       });
       place();
       const back = out;   // they return in the order they left
       setTimeout(() => {
         back.forEach((i, n) => {
           const card = cards[i];
-          card.style.transition = "none";                    // jump to the back unseen (still faded out)
+          card.style.transition = "none";                    // jump to the back unseen
+          card.style.visibility = "hidden";
+          void card.offsetHeight;
           leaving.delete(i);
           place();
           void card.offsetHeight;
@@ -138,7 +159,7 @@ export function WorkDeck() {
             // can turn visible underneath it in the same frame
             card.style.transition = "none";
             const done = pixelCard(card, "in", { duration: IN_MS, blur: 3 });
-            card.style.opacity = "";
+            card.style.visibility = "";
             void card.offsetHeight;
             card.style.transition = "";
             done.then(() => {
@@ -153,16 +174,52 @@ export function WorkDeck() {
       raf = 0;
       const top = section.getBoundingClientRect().top;
       warp(top);
-      tabs.style.top = `${cards[0].offsetTop + cards[0].offsetHeight + 20}px`;   // 20px under the front card
+      tabs.style.top = `${cards[0].offsetTop + cards[0].offsetHeight + TABS_GAP}px`;   // just under the front card
+      tabs.dataset.placed = "";
       // Thumbnails appear one at a time once the deck is a little way in
       const scrolled = (pinAt - top) / innerHeight;
       setSatsIn(Math.max(0, Math.min(4, Math.floor(scrolled / SAT_STEP) - 1)));
       place();
     };
     const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    // Size the group — the cards stacked behind, the front card and the tabs under it — to 95% of
+    // the free space between the top bar and the floating nav, centred in it, on every screen. The card keeps its 5:4 image where the width allows (desktop);
+    // where it's capped by the screen width (phones), the image gets taller instead.
+    const size = () => {
+      const card = cards[0], img = card.querySelector<HTMLElement>(".deck-img")!;
+      const W = innerWidth, { top, bottom } = freeSpace(), H = bottom - top;
+      const rest = card.offsetHeight - img.offsetHeight;     // padding + title + summary
+      const pad = (card.offsetWidth - img.offsetWidth) / 2;
+      const below = TABS_GAP + tabs.offsetHeight;
+      const maxW = W < 1024 ? W - 32 : Math.min(W * 0.7, 760);
+      let w = card.offsetWidth, imgH = 0;
+      for (let n = 0; n < 4; n++) {                          // stack depth grows with the width: settle it
+        imgH = GROUP * H - STEP_Y * SHOWN * (w / 982) - rest - below;
+        w = Math.min(maxW, imgH * 1.25 + pad * 2);
+      }
+      section.style.setProperty("--card-w", `${Math.round(w)}px`);
+      section.style.setProperty("--img-h", `${Math.max(120, Math.round(imgH))}px`);
+      section.dataset.sized = "";
+    };
+
+    // The free space: below the top bar's content, above the floating nav (as laid out at rest)
+    const freeSpace = () => {
+      const bar = document.querySelector(".nav-inner")?.getBoundingClientRect();
+      const nav = document.querySelector(".tb")?.getBoundingClientRect();
+      const top = bar ? bar.bottom : 0;
+      const bottom = nav && nav.height ? nav.top - 8 : innerHeight;
+      return { top, bottom };
+    };
+
     const measure = () => {
-      pinAt = Math.max(1, section.getBoundingClientRect().top + scrollY);   // scroll position where the deck fills the screen
+      size();
       k = cards[0].offsetWidth / 982;
+      // The group sits centred in the free space. The hero peek follows from this too.
+      const { top, bottom } = freeSpace();
+      const group = STEP_Y * SHOWN * k + cards[0].offsetHeight + TABS_GAP + tabs.offsetHeight;
+      const stackTop = Math.max(8, top + (bottom - top - group) / 2);
+      section.style.setProperty("--stack-top", `${stackTop}px`);
+      pinAt = Math.max(1, section.getBoundingClientRect().top + scrollY);   // scroll position where the deck fills the screen
       warp(section.getBoundingClientRect().top);   // sets the spacing too
       place();
       kick();
@@ -190,6 +247,11 @@ export function WorkDeck() {
     const out = order.slice(0, order.indexOf(i));          // the cards in front of it
     orderRef.current = [...order.slice(out.length), ...out];   // rotate: the ones in front go to the back
     setActive(i);
+    // The new project's thumbnails wait until the outgoing card has fully left; the old ones go now
+    setSatFor(null);
+    clearTimeout(satTimer.current);
+    const instant = matchMedia("(prefers-reduced-motion: reduce)").matches || out.length === 0;
+    satTimer.current = setTimeout(() => { rollJitter(); setSatFor(i); }, instant ? 0 : OUT_MS);
     switchRef.current(out);
     const section = sectionRef.current!;
     if (section.getBoundingClientRect().top > 1) {
@@ -197,15 +259,19 @@ export function WorkDeck() {
     }
   };
 
-  const gallery = projects[active].gallery ?? [];
+  const gallery = satFor === null ? [] : projects[satFor].gallery ?? [];
 
   return (
-    <section className="deck" ref={sectionRef} aria-label="Selected work">
+    <section className="deck" ref={sectionRef} aria-label="Projects">
       <div className="deck-stage">
         <div className="deck-sats" aria-hidden="true">
           {gallery.map((g, i) => (
-            <figure className={`deck-sat deck-sat-${i + 1}${i < satsIn ? " is-in" : ""}`} key={`${projects[active].slug}-${i}`}>
-              <Image src={g.src} width={g.width} height={g.height} alt={g.alt} sizes="200px" />
+            <figure
+              className={`deck-sat deck-sat-${i + 1}${i < satsIn ? " is-in" : ""}`}
+              key={`${projects[satFor ?? active].slug}-${i}`}
+              style={jitter[i] ? ({ "--jx": `${jitter[i].x}px`, "--jy": `${jitter[i].y}px` } as React.CSSProperties) : undefined}
+            >
+              <Image src={g.src} width={g.width} height={g.height} alt={g.alt} sizes="200px" unoptimized={g.src.endsWith(".svg")} />
               <figcaption>{g.label}</figcaption>
             </figure>
           ))}
@@ -228,8 +294,7 @@ export function WorkDeck() {
                 }}
               >
                 <span className="deck-img">
-                  <Image src={p.cover.src} width={p.cover.width} height={p.cover.height} alt={p.cover.alt}
-                    sizes="(max-width: 1023px) calc(100vw - 32px), 982px" loading={i < 3 ? "eager" : "lazy"} />
+                  <Cover cover={p.cover} sizes="(max-width: 1023px) calc(100vw - 32px), 982px" eager={i < 3} />
                 </span>
                 <span className="deck-text">
                   <span className="deck-title">{p.title}</span>

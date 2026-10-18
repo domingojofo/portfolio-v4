@@ -1,7 +1,7 @@
 import { RevealHeading } from "./RevealHeading";
 import { Wall } from "./Wall";
 
-// Below the work deck — Figma "Hero — Final frame (1440)", lower part:
+// Below the project cards — Figma "Hero — Final frame (1440)", lower part:
 //  1. Text wall (Wall.tsx) — six rows of faint "CALLOUSED HANDS"; letters near the cursor darken
 //  2. Ticker — "5 Years of Leadership" in Gelica, with the orange sparkle marks between items
 //  3. Text wall — six more rows

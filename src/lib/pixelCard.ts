@@ -1,7 +1,7 @@
 // Pixel dissolve for a work-deck card. The card is drawn once into a canvas (background, cover
 // image, title and summary); the canvas then steps through coarser blocks while random blocks drop
 // out and it fades a little ("out"), or the reverse ("in"). By the end of "out" it's fully gone.
-// The work deck only uses "in" (cards fade out without pixels). While it runs the real card is hidden behind the canvas
+// The project cards only use "in" (cards slide out without pixels). While it runs the real card is hidden behind the canvas
 // (.px-active); after "out" it stays hidden until an "in" brings it back.
 
 const STEPS = [1, 2, 4, 7, 11, 16, 24];   // block size in px, sharp → coarse
@@ -35,16 +35,20 @@ function snapshot(card: HTMLElement): Snap {
   g.fillRect(0, 0, w, h);
 
   const box = card.querySelector<HTMLElement>(".deck-img");
-  const img = box?.querySelector("img");
+  const media = box?.querySelector<HTMLImageElement | HTMLVideoElement | HTMLCanvasElement>("img, video, canvas");
   if (box) {
     const b = local(box.getBoundingClientRect());
     g.fillStyle = getComputedStyle(box).backgroundColor;
     g.fillRect(b.x, b.y, b.w, b.h);
-    if (img && img.complete && img.naturalWidth) {
+    // The cover image, or the video's current frame
+    const mw = media instanceof HTMLVideoElement ? media.videoWidth : media instanceof HTMLCanvasElement ? media.width : media?.naturalWidth ?? 0;
+    const mh = media instanceof HTMLVideoElement ? media.videoHeight : media instanceof HTMLCanvasElement ? media.height : media?.naturalHeight ?? 0;
+    const ready = media instanceof HTMLVideoElement ? media.readyState >= 2 : media instanceof HTMLCanvasElement ? true : !!media?.complete;
+    if (media && ready && mw) {
       // object-fit: cover
-      const s = Math.max(b.w / img.naturalWidth, b.h / img.naturalHeight);
+      const s = Math.max(b.w / mw, b.h / mh);
       const sw = b.w / s, sh = b.h / s;
-      g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, b.x, b.y, b.w, b.h);
+      g.drawImage(media, (mw - sw) / 2, (mh - sh) / 2, sw, sh, b.x, b.y, b.w, b.h);
     }
   }
 
