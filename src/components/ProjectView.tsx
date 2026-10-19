@@ -2,6 +2,7 @@ import type { Project } from "@/content/projects";
 import { Cover } from "./Cover";
 import { BanksHeroCard } from "./demos/banks/BanksHeroCard";
 import { ChippFeaturesCard, ChippHeroCard, ChippRow } from "./demos/chipp/ChippCards";
+import { ElevenLabsCard } from "./demos/elevenlabs/ElevenLabsCard";
 import { TrustedDestinationsCard } from "./demos/trusted-destinations/TrustedDestinationsCard";
 import { VirtualAccountsCard } from "./demos/va-charts/VirtualAccountsCard";
 
@@ -22,6 +23,11 @@ export function ProjectView({ project, headingId }: { project: Project; headingI
       <p>{project.summary}</p>
       {project.slug === "anchorage" && <AnchorageBody />}
       {project.slug === "chipp" && <ChippBody />}
+      {project.slug === "elevenlabs" && (
+        <Section title="Voice generation">
+          <ElevenLabsCard />
+        </Section>
+      )}
     </article>
   );
 }

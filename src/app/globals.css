@@ -462,7 +462,8 @@ html[data-intro="playing"] .hero:not(.is-running) .hero-title .rv-in,
 .project-section { margin-top: 72px; }
 .project-section h2 { margin-bottom: 20px; font-family: var(--serif); font-weight: 300; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; }
 .project-section > * + * { margin-top: 24px; }
-.project :is(.td-card, .banks-card, .va-card, .chipp-card) { border-radius: 6px; overflow: hidden; }
+.project :is(.td-card, .banks-card, .va-card, .chipp-card, .el-card) { border-radius: 6px; overflow: hidden; }
+.project .el-card { border: 1px solid rgb(29 52 74 / .1); }
 
 /* =========================================================================
    Writing: sidebar of every entry + the open entry (WritingShell)

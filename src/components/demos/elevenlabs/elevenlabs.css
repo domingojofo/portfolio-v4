@@ -1,0 +1,191 @@
+/* =========================================================================
+   ElevenLabs — interactive "Generate" screen (Figma "ElevenLabs Project", Desktop - 16).
+   Everything inside .el-screen is in the frame's px (1296×768) and scaled as a whole.
+   ========================================================================= */
+.el-card {
+  --el-nav: 197.25px;              /* nav width: open */
+  position: relative;
+  aspect-ratio: 1296 / 768;
+  overflow: hidden;
+  background: #fff;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  contain: layout paint;
+}
+.el-card :where(button) { font: inherit; color: inherit; cursor: pointer; }   /* :where — the buttons' own sizes win */
+.el-card p { margin: 0 !important; }   /* page styles (e.g. .page p + p) must not space the mock out */
+
+.el-screen {
+  position: absolute; left: 0; top: 0;
+  width: 1296px; height: 768px;
+  transform: scale(var(--el-s, 0));
+  transform-origin: 0 0;
+  font-family: var(--sans);
+  color: #000;
+  background: #fff;
+}
+.el-screen:not([data-open]) { --el-nav: 52px; }   /* closed: just the icon rail */
+
+/* Soft waves behind the page */
+.el-waves { position: absolute; left: 78px; top: 505.5px; width: 1218px; height: 463.5px; overflow: hidden; opacity: .7; filter: blur(5.25px); }
+.el-waves img { position: absolute; left: -.01%; top: -34.14%; width: 100.03%; height: 134.14%; max-width: none; }
+
+/* ---------- Main: everything centred in the space right of the nav ---------- */
+.el-main {
+  position: absolute; top: 0; bottom: 0; right: 0;
+  left: var(--el-nav);
+  transition: left .45s cubic-bezier(.22, 1, .36, 1);
+}
+.el-tabs {
+  position: absolute; left: 18px; top: 18px;
+  display: flex; padding: 3px;
+  border: .75px solid rgb(125 135 155 / .2); border-radius: 3px;
+}
+.el-tabs button { padding: 0 9px; border: 0; border-radius: 3px; background: none; font-size: 10.5px; line-height: 1.5; }
+.el-tabs button[aria-selected="true"] { background: #000; color: #fff; }
+
+.el-col { position: absolute; left: calc(50% - 270px); top: 0; width: 540px; }
+.el-head { position: absolute; left: 90px; top: 105px; width: 360px;   /* a touch wider than Figma: Public Sans runs wider than Inter */ display: grid; gap: 6px; text-align: center; line-height: 1.3; }
+.el-title { font-weight: 700; font-size: 15px; }
+.el-sub { font-size: 10.5px; letter-spacing: .075px; color: #8c8a94; }
+
+.el-input {
+  position: absolute; left: 0; top: 171px; width: 540px; height: 127.5px;
+  padding: 10.5px;
+  border: .75px solid #000; border-radius: 12px; background: #fff;
+  overflow: hidden;
+}
+.el-placeholder { font-size: 10.5px; line-height: 15px; letter-spacing: .075px; color: rgb(8 20 43 / .6); }
+.el-btn { position: absolute; padding: 7.5px 10.5px; border: 0; border-radius: 6px; font-size: 10.5px; font-weight: 500; line-height: 1.1; letter-spacing: .075px; white-space: nowrap; }
+.el-settings { left: 9.75px; top: 89.25px; background: #fff; border: .75px solid rgb(125 135 155 / .2) !important; color: #000; }
+.el-settings:hover { background: #f6f6f7; }
+.el-generate { right: 9.75px; top: 89.25px; background: rgb(0 0 0 / .5); color: #fffefe !important; cursor: default !important; }
+.el-credits { position: absolute; right: 138.75px; bottom: 21.25px; font-size: 9px; line-height: 1.3; letter-spacing: .1px; color: rgb(8 20 43 / .6); }
+
+/* Trending voices */
+.el-voices { position: absolute; left: 0; top: 310.5px; width: 540px; }
+.el-voices-head { display: flex; justify-content: space-between; margin-bottom: 9px; font-size: 10.5px; font-weight: 500; line-height: 1.5; }
+.el-discover { text-decoration: underline; }
+.el-voice-row { display: flex; justify-content: space-between; }
+.el-voice { width: 168px; }
+.el-voice-media { position: relative; height: 142.5px; overflow: hidden; border: .75px solid rgb(125 135 155 / .2); border-radius: 16px; background: #fefefe; }
+.el-voice-bg { position: absolute; left: -100.5px; top: 15px; width: 377.25px; height: 112.5px; overflow: hidden; }
+.el-voice-bg img { position: absolute; left: 0; max-width: none; }
+.el-voice-blur { position: absolute; left: calc(50% + .38px); top: 4.22%; bottom: 2.43%; width: 338.25px; translate: -50% 0; overflow: hidden; filter: blur(3.75px); }
+.el-voice-blur img { position: absolute; left: -.01%; top: -1.54%; width: 100.02%; height: 131.08%; max-width: none; }
+.el-voice-face { position: absolute; left: 50%; top: 30.75px; width: 198px; height: 111px; translate: -50% 0; object-fit: cover; }
+.el-flags { position: absolute; left: 6px; top: 6px; }
+.el-flag { display: grid; place-items: center; width: 24.375px; height: 24.375px; padding: 3.75px; border: .375px solid rgb(125 135 155 / .2); border-radius: 50%; background: #fff; }
+.el-flag img { width: 100%; height: 9.375px; object-fit: cover; }
+.el-flag-sm { position: absolute; left: 17.25px; top: 12.19px; width: 12.188px; height: 12.188px; padding: 1.875px; }
+.el-flag-sm img { height: 4.688px; }
+.el-listeners { position: absolute; left: 135px; top: 6px; display: flex; align-items: flex-end; gap: 3px; font-size: 7.5px; font-weight: 500; line-height: 1.1; }
+.el-listeners img { width: 9px; height: 9px; }
+.el-play {
+  position: absolute; left: 132px; top: 106.5px;
+  display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%;
+  background: #000;
+  transition: transform .15s ease;
+}
+.el-play:hover { transform: scale(1.08); }
+.el-play img { width: 10.15px; height: 12px; margin-left: 1.5px; }
+.el-voice-meta { position: relative; margin-top: 6px; }
+.el-voice-name { font-size: 10.5px; font-weight: 500; line-height: 1.5; }
+.el-card .el-voice-desc { height: 23.25px; margin-top: 3px !important; overflow: hidden; font-size: 9px; line-height: 1.3; letter-spacing: .1px; color: #8c8a94; }
+.el-tags { display: flex; gap: 3px; margin-top: 6px; }
+.el-tags span { padding: 3px 6px; border-radius: 16px; background: #f3f4f6; font-size: 7.5px; font-weight: 500; line-height: 1.1; white-space: nowrap; }
+.el-use { position: absolute; right: 1.5px; top: -.75px; padding: 4.5px; border: .75px solid rgb(125 135 155 / .2); border-radius: 8px; background: #fff; font-size: 9px; font-weight: 500; line-height: 1.1; color: #08142b; }
+
+.el-history { position: absolute; left: 50%; top: 170px; width: 340px; translate: -50% 0; display: grid; justify-items: center; gap: 8px; text-align: center; line-height: 1.3; }
+.el-history .el-btn { position: static; margin-top: 10px; }
+.el-dark { background: #000; color: #fff !important; }
+
+/* Player bar: the Figma screenshot, with the title and buttons live on top */
+.el-player {
+  position: absolute; left: 50%; top: 657.75px; width: 1062px; height: 92.25px;
+  translate: -50% 0;
+  padding: 10.552px;
+  border: .754px solid rgb(125 135 155 / .2); border-radius: 12.06px; background: #fff;
+}
+.el-player-bg { display: block; width: 1040.896px; height: 74.619px; object-fit: cover; }
+.el-player-cover { position: absolute; left: 70.5px; top: 21px; width: 231.75px; height: 28.5px; background: #fffefe; }
+.el-player-title { position: absolute; left: 76.55px; top: 22.92px; font-size: 10.5px; font-weight: 700; line-height: 1.5; white-space: nowrap; }
+.el-progress { position: absolute; left: 141px; top: 57.5px; width: 763px; height: 2px; border-radius: 2px; background: #000; transform-origin: 0 50%; animation: el-progress 6s linear forwards; }
+@keyframes el-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.el-use-project { right: 16.5px; top: 13.54px; padding: 6px 9px; background: #b2b2b2; color: #fff; transition: background-color .2s ease; }
+.el-player-play {
+  position: absolute; left: 15.75px; top: 24.75px;
+  display: grid; place-items: center;
+  width: 42px; height: 42px; padding: 0; border: 0; border-radius: 50%;
+  background: #b2b2b2;
+  transition: background-color .2s ease;
+}
+.el-player-play img { width: 14px; height: 18.667px; margin-left: 3px; }
+.el-player[data-on] :is(.el-player-play, .el-use-project) { background: #000; }
+
+/* ---------- Left nav: opens and closes ---------- */
+.el-nav {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: var(--el-nav);
+  overflow: hidden;
+  border: .75px solid rgb(125 135 155 / .2); border-radius: 4px;
+  background: #fff;
+  transition: width .45s cubic-bezier(.22, 1, .36, 1);
+}
+.el-nav > * { position: absolute; }
+.el-logo { left: 0; top: 9px; width: 197.25px; height: 31.5px; overflow: hidden; transition: opacity .2s ease; }
+.el-logo img { position: absolute; left: 0; top: -26.46%; width: 100%; height: 2442.89%; max-width: none; }
+.el-toggle {
+  left: calc(var(--el-nav) - 39px); top: 10.5px;
+  display: grid; place-items: center;
+  width: 28.5px; height: 28.5px; padding: 0; border: 0; border-radius: 6px;
+  background: #f2f2f3; color: #000;
+  transition: left .45s cubic-bezier(.22, 1, .36, 1), background-color .2s ease;
+}
+.el-toggle:hover { background: #e6e6e8; }
+.el-create-wrap { left: 9px; right: 9px; top: 55.5px; }
+.el-create { display: flex; align-items: center; justify-content: center; width: 100%; height: 26.25px; padding: 0; border: 0; border-radius: 8px; background: #000; color: #fffefe !important; font-size: 10.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; transition: background-color .2s ease; }
+.el-create:hover { background: #262626; }
+.el-create .el-label { display: inline-block; max-width: 60px; padding-left: .3em; overflow: hidden; transition: max-width .3s ease, opacity .2s ease; }
+.el-home {
+  left: 9px; right: 9px; top: 87.75px;
+  display: flex; align-items: center; gap: 7.5px;
+  padding: 7.5px 10.5px; border: 0; border-radius: 8px; background: none;
+  font-size: 10.5px; font-weight: 500; line-height: 1.1; white-space: nowrap; text-align: left;
+}
+.el-home:hover { background: #f3f4f6; }
+.el-home svg { flex: none; }
+.el-section { left: 7.5px; top: 123.25px; font-size: 9px; font-weight: 700; line-height: 1.1; letter-spacing: .1px; color: rgb(7 35 55 / .4); white-space: nowrap; }
+.el-items { left: 0; top: 142px; width: 197.25px; height: 507px; overflow: hidden; }
+.el-items img { position: absolute; left: -.06%; top: -1.18%; width: 100.13%; height: 126.18%; max-width: none; }
+.el-items-2 { top: 649px; height: 110.25px; }
+.el-items-2 img { top: -480.95%; height: 580.27%; }
+.el-label { transition: opacity .2s ease; }
+/* Closed: labels and the logo fade; section headers baked into the screenshot are masked */
+.el-mask { left: 0; width: 52px; height: 16px; background: #fff; opacity: 0; transition: opacity .2s ease; }
+.el-rail-mask { left: 36px; top: 142px; width: 16px; height: 507px; }   /* the labels' first letters, beside the icons */
+.el-rail-mask-2 { left: 48px; top: 649px; width: 4px; height: 110.25px; }   /* below: clear of the avatar */
+.el-screen:not([data-open]) :is(.el-label, .el-logo) { opacity: 0; }
+.el-screen:not([data-open]) .el-mask { opacity: 1; }
+.el-screen:not([data-open]) .el-create { font-size: 13px; }
+.el-screen:not([data-open]) .el-create .el-label { max-width: 0; }
+
+.el-card button:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+/* ---------- Card chrome ---------- */
+.el-card-ui { position: absolute; right: 16px; top: 16px; pointer-events: none; }   /* top right: the screen is empty there */
+.el-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px;
+  background: rgb(29 52 74 / .82); color: #fff;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  font-family: var(--sans); font-size: 13px; white-space: nowrap;
+}
+.el-pill-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hl); animation: el-pulse 1.6s ease-in-out infinite; }
+@keyframes el-pulse { 50% { opacity: .35; transform: scale(.8); } }
+@media (max-width: 640px) { .el-pill-long { display: none; } .el-card-ui { right: 8px; top: 8px; } .el-pill { padding: 5px 10px; font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) {
+  .el-pill-dot, .el-progress { animation: none; }
+  .el-main, .el-nav, .el-toggle { transition: none; }
+}

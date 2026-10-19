@@ -6,7 +6,12 @@
 type Img = { src: string; width: number; height: number; alt: string };
 /** A cover can be a looping, silent video (`src` is then its poster frame) or the animated
  *  GradientField (`src` stays as a still for places that need an image) */
-type Cover = Img & { video?: string; gradient?: { colors?: string[]; speed?: number; warp?: number; grain?: number } };
+type Cover = Img & {
+  video?: string;
+  gradient?: { colors?: string[]; speed?: number; warp?: number; grain?: number };
+  /** An animated scene drawn over the gradient */
+  scene?: "elevenlabs";
+};
 
 export type Project = {
   slug: string;
@@ -103,8 +108,9 @@ export const projects: Project[] = [
       src: "/images/elevenlabs-cover.jpg",
       width: 2000,
       height: 1500,
-      alt: "ElevenLabs — a warm, slowly shifting gradient",
+      alt: "ElevenLabs — a voice card and a text box typing itself, over a warm, slowly shifting gradient",
       gradient: {},
+      scene: "elevenlabs",
     },
     // Placeholder thumbnails — crops of the cover
     gallery: [
