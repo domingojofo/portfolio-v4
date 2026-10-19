@@ -89,6 +89,9 @@ html[data-intro="playing"] .dot-grid { opacity: 0; transition: none; }
   line-height: .95;
   letter-spacing: -0.03em;
 }
+/* Always three lines — "Shipping Outcomes / from Thoughtfully Crafted / Products and Systems":
+   each line stays on one line, and on narrow screens the type shrinks so the longest one fits */
+.hero-title > span { white-space: nowrap; }
 .gelica-light, .gelica-xlight { font-family: var(--serif); font-style: italic; }
 .gelica-light { font-weight: 300; }
 .gelica-xlight { font-weight: 200; }
@@ -242,7 +245,9 @@ html.fonts-loading .deck-tabs { visibility: hidden; }
    Closing section (Closing.tsx) — Figma "Hero — Final frame (1440)", lower part:
    text wall, ticker, text wall, giant words
    ========================================================================= */
-.closing { position: relative; margin-top: -20svh; padding: 12svh 0 calc(var(--dock) + 72px);   /* half the old gap under the deck */ color: #0F2132; overflow-x: clip; }
+/* Starts after the deck (which fills one screen, its card group centred); the padding leaves a clear
+   gap under the project tabs — the walls must never run behind the cards */
+.closing { position: relative; padding: 9svh 0 calc(var(--dock) + 72px); color: #0F2132; overflow-x: clip; }
 
 /* Text wall (Wall.tsx): faint rows of "CALLOUSED HANDS"; letters in a circle around the cursor darken */
 .wall { display: grid; gap: 8px; padding: 0 12px; overflow: hidden; }
@@ -1051,7 +1056,7 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
    iPad + mobile (below 1024px), from the "iPhone 17" Figma frame
    ========================================================================= */
 @media (max-width: 1023px) {
-  .hero-title { top: 72px; font-size: clamp(34px, 10.4vw, 64px); }
+  .hero-title { top: 72px; font-size: min(64px, calc((100vw - 32px) / 11)); }   /* the longest line is ≈10.7em */
   .hero { min-height: 560px; }
   .bio { font-size: 16px; }
   .deck-card { width: var(--card-w, calc(100vw - 32px)); }
