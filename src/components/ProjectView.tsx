@@ -2,9 +2,9 @@ import type { Project } from "@/content/projects";
 import { Cover } from "./Cover";
 import { BanksHeroCard } from "./demos/banks/BanksHeroCard";
 import { ChippFeaturesCard, ChippHeroCard, ChippRow } from "./demos/chipp/ChippCards";
-import { ElevenLabsCard } from "./demos/elevenlabs/ElevenLabsCard";
 import { TrustedDestinationsCard } from "./demos/trusted-destinations/TrustedDestinationsCard";
 import { VirtualAccountsCard } from "./demos/va-charts/VirtualAccountsCard";
+import { VoiceStudioCard } from "./demos/voice-studio/VoiceStudioCard";
 
 // Project content — shared by the modal and the full /design/[slug] page. Every project opens with
 // the same header (title, role · year, cover, summary); Anchorage and Chipp then show their panels
@@ -25,7 +25,7 @@ export function ProjectView({ project, headingId }: { project: Project; headingI
       {project.slug === "chipp" && <ChippBody />}
       {project.slug === "elevenlabs" && (
         <Section title="Voice generation">
-          <ElevenLabsCard />
+          <VoiceStudioCard />
         </Section>
       )}
     </article>

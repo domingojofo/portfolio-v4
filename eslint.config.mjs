@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Built apps exported from the portfolio-apps repo (minified bundles)
+    "public/demos/**/assets/**",
   ]),
 ]);
 

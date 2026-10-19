@@ -1,0 +1,67 @@
+/* Voice Studio card (VoiceStudioCard.tsx): the gradient fills the card; a browser window floats on
+   it with the app (1512×945) scaled to fit by --vs-s. */
+
+.vs-card {
+  position: relative;
+  aspect-ratio: 16 / 10.4;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 5.5% 7%;
+  background: linear-gradient(90deg, #c64a24, #ef8a4b, #f3b8a0, #c55a8b, #5f3a9c);  /* before the palette is rolled */
+  contain: layout paint;
+}
+
+.vs-window {
+  position: relative;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 30px 80px -24px rgb(10 8 30 / .55), 0 0 0 1px rgb(255 255 255 / .25);
+}
+
+.vs-chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgb(0 0 0 / .05);
+  background: #f6f6f4;
+}
+.vs-chrome > span:not(.vs-url) { width: 9px; height: 9px; border-radius: 50%; }
+.vs-chrome > span:nth-child(1) { background: #ff5f57; }
+.vs-chrome > span:nth-child(2) { background: #febc2e; }
+.vs-chrome > span:nth-child(3) { background: #28c840; }
+.vs-url {
+  margin: 0 auto;
+  translate: -18px 0;   /* optically centred despite the dots */
+  padding: 1px 28px;
+  border-radius: 5px;
+  background: #fff;
+  font-family: var(--sans);
+  font-size: 10px;
+  color: rgb(0 0 0 / .45);
+}
+
+.vs-screen {
+  position: relative;
+  aspect-ratio: 1512 / 945;
+  overflow: hidden;
+  background: #fff;
+}
+.vs-screen iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 0;
+  transform: scale(var(--vs-s, 0));
+  transform-origin: 0 0;
+}
+
+/* Phones: less padding so the app stays legible */
+@media (max-width: 640px) {
+  .vs-card { aspect-ratio: 4 / 3.4; padding: 6% 4%; }
+  .vs-chrome { height: 20px; }
+}
