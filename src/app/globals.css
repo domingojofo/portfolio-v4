@@ -121,9 +121,10 @@ html[data-intro="playing"] .bio { opacity: 0; }
    ========================================================================= */
 .deck {
   --stack-top: 9svh;               /* top edge of the furthest card shown, once pinned */
+  --pause: 70svh;                  /* scrolling the deck holds still for (the stage stays pinned) */
   position: relative;
-  height: 100vh;
-  height: 100svh;
+  height: calc(100vh + var(--pause));
+  height: calc(100svh + var(--pause));
   margin-top: calc(-10svh - var(--stack-top));
   pointer-events: none;            /* the transparent stage mustn't block the hero's copy */
 }
@@ -159,55 +160,121 @@ html.fonts-loading .deck-cards { opacity: 0; }                               /* 
   pointer-events: auto;
   will-change: transform;
 }
-.deck-card { cursor: pointer; }
+.deck-card { cursor: default; }
+.deck-link[role="button"] { cursor: pointer; }   /* a card peeking out behind comes to the front */
 /* Switching (ProjectCards): cards glide to their new place in the stack */
 .deck-cards.is-switching .deck-card { transition: transform .6s cubic-bezier(.22, 1, .36, 1); }   /* cards moving forward: ease-out (leaving ones get an ease-in, inline) */
 /* Pixel dissolve (src/lib/pixelCard.ts): the canvas stands in for the card while it runs */
 .deck-card.px-active { background: transparent; box-shadow: none; pointer-events: none; }
 .deck-card.px-active > .deck-link { visibility: hidden; }
 .px-canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; pointer-events: none; }
-.deck-link { display: block; padding: clamp(10px, 1.1vw, 16px); color: #0F2132; text-decoration: none; }
+.deck-link { display: block; padding: clamp(8px, .8vw, 12px); color: #0F2132; text-decoration: none; }
 .deck-link:focus-visible { outline: 2px solid #0F2132; outline-offset: 4px; }
 .deck[data-sized] .deck-img { aspect-ratio: auto; height: var(--img-h); }
 .deck-img { display: block; aspect-ratio: 5 / 4; border-radius: 3px; overflow: hidden; background: #ECECE8; }
 .deck-img :is(img, video) { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .6s cubic-bezier(.22, 1, .36, 1); }
 .deck-link:hover .deck-img :is(img, video) { scale: 1.02; }
-.deck-text { display: grid; gap: 8px; margin-top: 16px; padding: 0 8px 8px; }
-.deck-title { font-family: var(--serif); font-weight: 300; font-size: clamp(26px, 2.5vw, 38px); line-height: 1.05; }
-/* Two lines, always — so every card is the same height and sits centred when it comes to the front */
-.deck-summary {
-  max-width: 560px; min-height: 2.8em;
-  font-size: 15px; line-height: 1.4; color: rgb(15 33 50 / .75);
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
-}
 
-/* Project tabs, centred just under the front card. Hidden until ProjectCards has placed them (they'd
-   flash at the top of the stage on load), and while the intro or the fonts are still loading. */
-.deck-tabs {
+/* Under the stack (ProjectCards), 1inch-style: the project in front on the left; the counter and
+   "Open project" on the right, out at the page's edges. Hidden until ProjectCards has placed it
+   (it'd flash at the top of the stage on load), and while the intro or the fonts are still loading. */
+.deck-bar {
   position: absolute;
-  z-index: 10;                     /* above the cards, so one sliding out passes under the tabs */
-  left: 50%; top: 0;
-  translate: -50% 0;
-  display: flex; gap: 4px;
-  padding: 6px;
-  border-radius: 10px;
-  background: #fff;
-  pointer-events: auto;
+  z-index: 10;                     /* above the cards, so one sliding out passes under it */
+  left: 40px; right: 40px; top: 0;
+  display: flex; flex-direction: column; gap: 16px;   /* stacked under the cards (iPad, phones) */
+  color: #0F2132;
+  pointer-events: none;
 }
-.deck-tabs:not([data-placed]),
-html[data-intro="playing"] .deck-tabs,
-html.fonts-loading .deck-tabs { visibility: hidden; }
-.deck-tabs button {
-  border: 0; border-radius: 6px;
-  padding: 8px 14px;
+.deck-bar > * { pointer-events: auto; }
+.deck-bar:not([data-placed]),
+html[data-intro="playing"] .deck-bar,
+html.fonts-loading .deck-bar { visibility: hidden; }
+/* The project: a fixed height (the company + four lines), its content at the bottom, so the bar
+   keeps one height and the stack doesn't shift between projects */
+.deck-about {
+  --lines: 4;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  max-width: 560px;
+  height: calc(16px + 12px + var(--lines) * 1.35 * 20px);
+}
+.deck-bar p { margin: 0; }
+/* The company: its logo and name, small caps */
+.deck-co {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: .06em; text-transform: uppercase;
+}
+.deck-co img { display: block; width: 16px; height: 16px; border-radius: 2px; }
+.deck-co-tile {
+  display: grid; place-items: center; width: 16px; height: 16px; border-radius: 3px;
+  background: #1D344A; color: var(--stage); font-size: 10px; letter-spacing: 0;
+}
+/* What I did and the impact, in one go: the marked parts (Marked.tsx) in full ink, the rest softer */
+.deck-story {
+  margin-top: 12px !important;
+  font-family: var(--serif); font-weight: 400; font-size: 20px; line-height: 1.35;
+  color: rgb(15 33 50 / .55);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines); line-clamp: var(--lines); overflow: hidden;
+}
+.deck-story strong { font-weight: 400; color: #0F2132; }
+.deck-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px 28px; }
+/* The counter: big numbers, the active one dark; its line fills as it counts down to the next */
+.deck-count { display: flex; gap: 4px; }
+.deck-count button {
+  position: relative;
+  border: 0; padding: 6px 6px 10px;
   background: none;
-  font: inherit; font-size: 14px; color: #0F2132;
+  font: inherit; font-size: 26px; font-weight: 400; line-height: 1;
+  font-variant-numeric: tabular-nums; letter-spacing: -.01em;
+  color: rgb(15 33 50 / .3);
   cursor: pointer;
-  transition: background-color .2s ease, color .2s ease;
+  transition: color .3s ease;
 }
-.deck-tabs button:hover { background: rgb(15 33 50 / .06); }
-.deck-tabs button[aria-current] { background: #1D344A; color: var(--stage); }
-.deck-tabs button:focus-visible { outline: 2px solid #0F2132; outline-offset: 2px; }
+.deck-count button:hover { color: rgb(15 33 50 / .6); }
+.deck-count button[aria-current] { color: #0F2132; cursor: default; }
+.deck-count button::after {        /* the track */
+  content: ""; position: absolute; left: 6px; right: 6px; bottom: 2px; height: 2px; border-radius: 1px;
+  background: rgb(15 33 50 / .12);
+  opacity: 0; transition: opacity .3s ease;
+}
+.deck-count button[aria-current]::after { opacity: 1; }
+.deck-count button:focus-visible { outline: 2px solid #0F2132; outline-offset: 2px; border-radius: 4px; }
+.deck-timer {
+  position: absolute; left: 6px; right: 6px; bottom: 2px; z-index: 1; height: 2px; border-radius: 1px;
+  background: #0F2132;
+  transform-origin: 0 50%;
+  animation: deck-timer linear both paused;
+}
+.deck-timer[data-run] { animation-play-state: running; }
+@keyframes deck-timer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.deck-open {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgb(29 52 74 / .3); border-bottom-width: 2px;
+  background: #1D344A; color: var(--stage);
+  box-shadow: 0 1px 2px 0 #fff inset, 0 1px 2px 0 rgb(0 0 0 / .2);
+  font-size: 14px; line-height: 20px; text-decoration: none; white-space: nowrap;
+  transition: background-color .2s ease;
+}
+.deck-open:hover { background: #0F2132; }
+.deck-open svg { transition: translate .25s cubic-bezier(.22, 1, .36, 1); }
+.deck-open:hover svg { translate: 2px 0; }
+
+/* Wide screens: three columns — the project | the stack | the counter and "View project" — each side
+   kept to the space beside the cards, 8px from them (ProjectCards, COLS_MIN), at the bottom of the
+   screen: the counter's row a little below the front card's bottom edge, the project text ending level
+   with it. */
+@media (min-width: 1200px) {
+  .deck-bar {
+    --side: calc((100vw - var(--card-w, 560px)) / 2 - 40px - 8px);
+    flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 0;
+  }
+  .deck-about { --lines: 4; width: min(560px, var(--side)); max-width: none; }   /* never into the middle column */
+  .deck-controls { width: var(--side); flex-wrap: wrap; justify-content: flex-end; gap: 4px 28px; }   /* right-aligned; narrow: "View project" wraps under */
+}
+.deck-open:focus-visible { outline: 2px solid #0F2132; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .deck-timer { display: none; } }
 
 /* Thumbnails floating around the deck for the project in front (desktop) */
 .deck-sat {
@@ -231,57 +298,77 @@ html.fonts-loading .deck-tabs { visibility: hidden; }
   background: #1D344A; color: var(--stage);
   font-size: 12px;
 }
-/* Two left, two right, square to the page (no rotation). ProjectCards nudges each one a little
+/* Two left, two right, square to the page (no rotation). On short screens the lower two
+   would meet the project text, so they're left out. ProjectCards nudges each one a little
    (--jx / --jy) every time a project comes to the front, so they fade in nearby, never quite the same. */
 .deck-sat { translate: var(--jx, 0px) var(--jy, 0px); }
 .deck-sat-1 { left: 10vw; top: calc(var(--lift) + 14svh); }
-.deck-sat-2 { left: 6vw;  top: calc(var(--lift) + 56svh); animation-delay: .15s; }
+.deck-sat-2 { left: 6vw;  top: calc(var(--lift) + 42svh); animation-delay: .15s; }
 .deck-sat-3 { right: 9vw; top: calc(var(--lift) + 18svh); animation-delay: .3s; }
-.deck-sat-4 { right: 6vw; top: calc(var(--lift) + 60svh); animation-delay: .45s; }
+.deck-sat-4 { right: 6vw; top: calc(var(--lift) + 44svh); animation-delay: .45s; }
 .deck-sats { transition: opacity .4s ease; }
+@media (max-height: 860px) { .deck-sat-2, .deck-sat-4 { display: none; } }
 @keyframes sat-in { from { opacity: 0; transform: translateY(10px); } }
 
 /* =========================================================================
-   Closing section (Closing.tsx) — Figma "Hero — Final frame (1440)", lower part:
-   text wall, ticker, text wall, giant words
+   Highlights ticker (Highlights.tsx) — a dark band along the bottom of the project cards' screen
+   (the work above it), peeking up under the work; it scrolls away with it
    ========================================================================= */
-/* Starts after the deck (which fills one screen, its card group centred); the padding leaves a clear
-   gap under the project tabs — the walls must never run behind the cards */
-.closing { position: relative; padding: 9svh 0 calc(var(--dock) + 72px); color: #0F2132; overflow-x: clip; }
-
-/* Text wall (Wall.tsx): faint rows of "CALLOUSED HANDS"; letters in a circle around the cursor darken */
-.wall { display: grid; gap: 8px; padding: 0 12px; overflow: hidden; }
-.wall-row { display: flex; gap: 2px; white-space: nowrap; font-weight: 200; font-size: 16px; line-height: 1.4; text-transform: uppercase; }
-.wall-item { flex: none; color: rgb(29 52 74 / .4); }
-.wl { transition: color .45s ease; }
-
-/* Ticker between the walls: two identical groups slide left by one group's width (seamless loop) */
-.marquee { overflow: hidden; margin: 0 0 4px; }
+.marquee {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 11;   /* over cards sliding out */
+  display: flex; align-items: center;
+  padding: 24px 0;
+  overflow: hidden;
+  background: #0F2132;
+}
 .marquee-track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
 .marquee-group { display: flex; margin: 0; padding: 0; list-style: none; }
-.marquee-group li { display: flex; align-items: center; gap: 24px; height: 66px; padding-left: 24px; }
+.marquee-group li { display: flex; align-items: center; gap: 24px; padding-left: 24px; }
 .marquee-group span {
   font-family: var(--serif); font-weight: 300;
-  font-size: 24px; line-height: .9; text-transform: uppercase; white-space: nowrap;
-  color: #1D344A;
+  font-size: clamp(16px, 2.4svh, 22px); line-height: 1; text-transform: uppercase; white-space: nowrap;
+  color: #D9D9D2;
 }
 .marquee-sep { display: block; flex: none; }
 @keyframes marquee { to { transform: translateX(-50%); } }
 
 /* Giant words (Figma: Gelica ExtraLight 202.8px at 1440, −4% tracking): "Relentless" starts at
    37vw, "Collaboration" just off the left edge */
+/* =========================================================================
+   Closing section (Closing.tsx) — Figma "Hero — Final frame (1440)": the giant words, the marble
+   hand and the cursor hand (CursorHand.tsx). .closing-art is the frame (1440 × 1094, the ticker
+   above it left out), scaled to the width: --u is one frame px.
+   ========================================================================= */
+.closing { position: relative; padding: 0 0 calc(var(--dock) + 24px); color: #1D344A; overflow-x: clip; }
+.closing-art { position: relative; aspect-ratio: 1440 / 1094; container-type: inline-size; }
+.closing-art > * { --u: calc(100cqw / 1440); }
+
+/* Gelica ExtraLight 202.8px, −4% tracking: "Relentlessly" top right, "Collaborative" bottom left */
 .giant {
-  margin: 14svh 0 0;
-  padding: 0 1.2vw;
+  position: absolute; inset: 0; z-index: 1; margin: 0;
   font-family: var(--serif); font-weight: 200;
-  font-size: 14.08vw; line-height: .94; letter-spacing: -0.04em;
-  color: #0F2132;
+  font-size: calc(202.8 * var(--u)); line-height: 1.2; letter-spacing: -0.04em;
+  color: #1D344A;
+  pointer-events: none;
 }
-.giant > span { display: block; }   /* one line each (RevealWords' <br> isn't needed) */
+.giant > span { position: absolute; white-space: nowrap; }
 .giant br { display: none; }
-.giant > span:first-child { padding-left: 35.9vw; }
+.giant > span:first-child { left: calc(420 * var(--u)); top: calc(74 * var(--u)); }
+.giant > span:last-child { left: calc(17 * var(--u)); top: calc(840 * var(--u)); }
 .giant .rv-scr { color: rgb(15 33 50 / .35); }
-@media (max-width: 720px) { .giant > span:first-child { padding-left: 22vw; } }
+
+/* The marble hand, turned 15° as in the frame; it comes in out of a blur (Linear-style) with the cursors */
+.closing-hand {
+  position: absolute; z-index: 2;
+  left: calc(598.23 * var(--u)); top: calc(384.19 * var(--u));
+  width: calc(959.93 * var(--u)); height: auto;
+  rotate: 15deg;
+  pointer-events: none;
+  transition: opacity 1.2s ease, filter 1.4s cubic-bezier(.22, 1, .36, 1), translate 1.4s cubic-bezier(.22, 1, .36, 1);
+}
+.closing-art:not(.is-in) .closing-hand { opacity: 0; filter: blur(14px); translate: calc(40 * var(--u)) 0; }
+.closing-cursors { position: absolute; z-index: 3; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .closing-hand { transition: none; } .closing-art .closing-hand { opacity: 1; filter: none; translate: none; } }
 @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
 
 /* =========================================================================
@@ -942,6 +1029,14 @@ html[data-intro="playing"] .mobile-bar { opacity: 0; pointer-events: none; }
 }
 
 html[data-intro="playing"] .tb { opacity: 0; pointer-events: none; }
+/* While the project cards fill the screen (ProjectCards), the bottom nav and LinkedIn/CV fade away;
+   they come back once you scroll on. The blur strip behind them shrinks to the highlights ticker's
+   height, so the ticker peeks up under it and the project text above stays sharp. */
+html.deck-focus :is(.tb, .dock, .social-corner, .mobile-bar) {
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .35s ease, visibility 0s .35s;
+}
+html.deck-focus .edge-blur--bottom { --edge-h: calc(48px + clamp(16px, 2.4svh, 22px)); }   /* the ticker's height */
 
 /* Which nav shows: the icon toolbar by default (html.nav-toolbar); the word nav with ?nav=words */
 html:not(.nav-toolbar) .tb { display: none; }
@@ -1061,8 +1156,12 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
   .hero { min-height: 560px; }
   .bio { font-size: 16px; }
   .deck-card { width: var(--card-w, calc(100vw - 32px)); }
-  .deck-tabs { max-width: calc(100vw - 32px); overflow-x: auto; scrollbar-width: none; }
-  .deck-tabs button { flex: none; white-space: nowrap; padding: 8px 10px; font-size: 13px; }
+  /* Phones: the project above, the counter and "View project" in a row under it */
+  .deck { --pause: 50svh; }
+  .deck-bar { left: 16px; right: 16px; gap: 12px; }
+  .deck-about { --lines: 5; }
+  .deck-count { margin-left: -6px; }
+  .deck-count button { font-size: 22px; }
   .deck-sats { display: none; }
 
   .edge-blur--bottom { --edge-h: 14vh; }   /* taller on mobile so it backs the 1.25× toolbar */

@@ -15,9 +15,13 @@ type Cover = Img & {
 
 export type Project = {
   slug: string;
+  /** The company's name */
   title: string;
-  /** Tab label in the project cards */
+  /** Short label */
   short: string;
+  /** The company's logo mark (square); without one, the deck shows the name's first letter in a tile */
+  logo?: string;
+  /** What I did there and the impact, in a few lines. **Marked** parts are highlighted (Marked.tsx) */
   summary: string;
   year: string;
   role: string;
@@ -32,8 +36,9 @@ export const projects: Project[] = [
     slug: "anchorage",
     title: "Anchorage Digital",
     short: "Anchorage",
+    logo: "/icons/anchorage-mark.svg",
     summary:
-      "Placeholder — Anchorage Cash, Trusted Destinations, the banks hero and virtual accounts: cash management and transfers for institutions holding USD and stablecoins side by side.",
+      "Led the bank’s **fiat experience**, launching **payment methods and interest** that earned **$1M in 3 months**.",
     year: "2022 — Now",
     role: "Staff product designer",
     cover: {
@@ -52,12 +57,12 @@ export const projects: Project[] = [
   },
   {
     slug: "chipp",
-    title: "Chipp",
+    title: "Chipp.ai",
     short: "Chipp",
     summary:
-      "Placeholder — the brand and mascot system for a no-code platform for building AI apps, and the builder around it.",
+      "**Founding designer (employee #4)**, then **head of design**. Built the **AI agent studio** and brand; helped unlock **$2M in seed**.",
     year: "2024",
-    role: "Product designer",
+    role: "Founding designer, then head of design",
     cover: {
       src: "/demos/chipp/features.png",
       width: 3150,
@@ -76,9 +81,10 @@ export const projects: Project[] = [
     slug: "oamo",
     title: "OAMO",
     short: "OAMO",
-    summary: "Placeholder — details coming soon.",
+    summary:
+      "**Lead product designer** across brand, marketing, UX, UI, motion and web, as it **grew past 200k users** and was **acquired**.",
     year: "",
-    role: "",
+    role: "Lead product designer",
     // Hero for now: the bounce loop (silent, 720px H.264); the poster is its first frame
     cover: {
       src: "/images/oamo-bounce-poster.jpg",
@@ -100,7 +106,8 @@ export const projects: Project[] = [
     slug: "elevenlabs",
     title: "ElevenLabs",
     short: "ElevenLabs",
-    summary: "Placeholder — voice generation: choose a voice, then hear your text or audio delivered in it, with control over tone, style and delivery.",
+    summary:
+      "**Freelance product designer** who raised **conversion into voice discovery** and **time-to-explore by 15%**.",
     year: "",
     role: "",
     // Hero for now: the animated warped gradient (GradientField, Ember palette)

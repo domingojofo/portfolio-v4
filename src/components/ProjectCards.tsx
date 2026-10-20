@@ -2,9 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { projects } from "@/content/projects";
 import { Cover } from "./Cover";
+import { Highlights } from "./Highlights";
+import { Marked } from "./Marked";
 import { pixelCard } from "@/lib/pixelCard";
 import { makeBend, setWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/warp";
 
@@ -15,8 +19,13 @@ import { makeBend, setWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/warp";
 // the cards that were in front of it slide straight down off the screen with an ease-out (under the
 // project tabs), then pixelate back in at the back (a little blurred, sharpening) in the order they left.
 // So the stack rotates: from Cash → Trusted Destinations, Cash goes to the back.
-// Clicking the front card opens the project. The top of the stack peeks 10vh into the hero,
-// packed tight so all three cards show; scrolling down spreads them out to their full spacing.
+// The cards show just the project's cover. On wide screens the section is three columns (1inch-
+// style): the project on the left (the company, then what I did and the impact), the stack in the
+// middle, and on the right the counter (01 02 03 04), which switches projects, and "View project",
+// which opens the one in front. Each column keeps to its own width. Narrower than COLS_MIN, the
+// project and the controls stack under the cards instead (the iPad / phone layout). The active number counts down while the deck is pinned, then the next project comes
+// up. The section holds still for a stretch of scrolling (--pause) so it reads as a pause.
+// The top of the stack peeks 10vh into the hero, packed tight so all three cards show; scrolling down spreads them out to their full spacing.
 //
 // Order: the front card first. A card's depth is its place in it.
 // The floating thumbnails come in one at a time as the deck scrolls in, SAT_STEP apart.
@@ -31,7 +40,15 @@ const STEP_TIGHT = 22;   // …and how tight they start, in the hero (the spacin
 const STEP_S = 0.06;     // scale lost per step behind — even steps
 const SHOWN = projects.length - 1;   // cards visible behind the front one: all of them
 const GROUP = 0.95;      // the stack + front card + tabs take up this much of the space between the top bar and the floating nav
-const TABS_GAP = 20;     // px between the front card and the tabs
+const RATIO = 1.12;      // the cover's width to its height (stacked layout)…
+const RATIO_COLS = 1.08; // …and in three columns: close to square, before the lift below
+const BAR_GAP = 20;      // px between the front card and the bar under it (stacked layout)
+const COLS_MIN = 1200;   // px wide from which the section is three columns (matches globals.css)
+const COLS_LIFT = 0.06;  // three columns: the front card is this much of the screen's height shorter…
+const COLS_RAISE = 0.03; // …and the stack sits this much higher
+const COLS_BOTTOM = 24;  // px from the highlights ticker to the project and counter (the nav is hidden here)
+const HOLD = 8000;       // ms each project stays in front before the counter moves on…
+const HOLD_FOR: Record<string, number> = { elevenlabs: 12500 };   // …long enough for its cover's loop
 const OUT_MS = 620, IN_MS = 520, IN_GAP = 150;   // slide down and away (ease-in) → pixelate back in
 const SAT_STEP = 0.06;   // viewport heights of scrolling between one thumbnail appearing and the next
 const LEAN = 0.45;       // share of the curl's slope the cards lean by — the full slope is too steep for a card
@@ -58,13 +75,19 @@ export function ProjectCards() {
   const orderRef = useRef(projects.map((_, i) => i));
   const switchRef = useRef<(leaving: number[]) => void>(() => {});
   const busy = useRef(false);
+  const [pinned, setPinned] = useState(false);   // the deck fills the screen (the counter runs)
+  const home = usePathname() === "/";            // a project open over the page pauses it
 
   useEffect(() => {
     const section = sectionRef.current!;
     const stage = section.querySelector<HTMLElement>(".deck-stage")!;
     const deck = section.querySelector<HTMLElement>(".deck-cards")!;
     const cards = [...section.querySelectorAll<HTMLElement>(".deck-card")];
-    const tabs = section.querySelector<HTMLElement>(".deck-tabs")!;
+    const bar = section.querySelector<HTMLElement>(".deck-bar")!;
+    const controls = bar.querySelector<HTMLElement>(".deck-controls")!;
+    const ticker = section.querySelector<HTMLElement>(".marquee")!;
+    const lift = () => (innerWidth >= COLS_MIN ? COLS_LIFT * innerHeight : 0);
+    const raise = () => (innerWidth >= COLS_MIN ? COLS_RAISE * innerHeight : 0);
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0, k = 1, pinAt = 1, step = STEP_Y;
     const leaving = new Set<number>();   // cards mid slide-out: place() leaves them alone
@@ -174,41 +197,51 @@ export function ProjectCards() {
       raf = 0;
       const top = section.getBoundingClientRect().top;
       warp(top);
-      tabs.style.top = `${cards[0].offsetTop + cards[0].offsetHeight + TABS_GAP}px`;   // just under the front card
-      tabs.dataset.placed = "";
+      // Just under the front card; in three columns, beside it, level with its bottom edge
+      const cardBottom = cards[0].offsetTop + cards[0].offsetHeight;
+      // (three columns: at the bottom of the screen, the project text ending level with the counter's row)
+      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - ticker.offsetHeight - COLS_BOTTOM - bar.offsetHeight : cardBottom + BAR_GAP}px`;
+      bar.dataset.placed = "";
+      // The counter runs while the deck fills the screen (through the pause), not from the hero
+      const bottom = section.getBoundingClientRect().bottom;
+      setPinned(top <= 1 && bottom > innerHeight * 0.6);
+      // While the deck fills the screen, the bottom nav and LinkedIn/CV step away (globals.css)
+      document.documentElement.classList.toggle("deck-focus", top <= innerHeight * 0.15 && bottom > innerHeight * 0.55);
       // Thumbnails appear one at a time once the deck is a little way in
       const scrolled = (pinAt - top) / innerHeight;
       setSatsIn(Math.max(0, Math.min(4, Math.floor(scrolled / SAT_STEP) - 1)));
       place();
     };
     const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
-    // Size the group — the cards stacked behind, the front card and the tabs under it — to 95% of
+    // Size the group — the cards stacked behind, the front card and the bar under it — to 95% of
     // the free space between the top bar and the floating nav, centred in it, on every screen. The card keeps its 5:4 image where the width allows (desktop);
     // where it's capped by the screen width (phones), the image gets taller instead.
     const size = () => {
       const card = cards[0], img = card.querySelector<HTMLElement>(".deck-img")!;
       const W = innerWidth, { top, bottom } = freeSpace(), H = bottom - top;
-      const rest = card.offsetHeight - img.offsetHeight;     // padding + title + summary
+      const rest = card.offsetHeight - img.offsetHeight;     // the card's padding
       const pad = (card.offsetWidth - img.offsetWidth) / 2;
-      const below = TABS_GAP + tabs.offsetHeight;
-      const maxW = W < 1024 ? W - 32 : Math.min(W * 0.7, 760);
+      const cols = W >= COLS_MIN;
+      const below = cols ? controls.offsetHeight : BAR_GAP + bar.offsetHeight;
+      const ratio = cols ? RATIO_COLS : RATIO;
+      const maxW = W < 1024 ? W - 32 : cols ? Math.min(W * 0.42, 720) : Math.min(W * 0.6, 680);
       let w = card.offsetWidth, imgH = 0;
       for (let n = 0; n < 4; n++) {                          // stack depth grows with the width: settle it
         imgH = GROUP * H - STEP_Y * SHOWN * (w / 982) - rest - below;
-        w = Math.min(maxW, imgH * 1.25 + pad * 2);
+        w = Math.min(maxW, imgH * ratio + pad * 2);
+        imgH = Math.min(imgH, (w - pad * 2) / ratio);   // capped by the width: keep the shape (shorter, not taller)
       }
+      imgH -= lift();   // three columns: the same width, shorter, its bottom edge raised
       section.style.setProperty("--card-w", `${Math.round(w)}px`);
       section.style.setProperty("--img-h", `${Math.max(120, Math.round(imgH))}px`);
       section.dataset.sized = "";
     };
 
-    // The free space: below the top bar's content, above the floating nav (as laid out at rest)
+    // The free space: below the top bar's content, above the highlights ticker (the bottom nav and
+    // LinkedIn/CV are hidden while the deck fills the screen)
     const freeSpace = () => {
       const bar = document.querySelector(".nav-inner")?.getBoundingClientRect();
-      const nav = document.querySelector(".tb")?.getBoundingClientRect();
-      const top = bar ? bar.bottom : 0;
-      const bottom = nav && nav.height ? nav.top - 8 : innerHeight;
-      return { top, bottom };
+      return { top: bar ? bar.bottom : 0, bottom: innerHeight - ticker.offsetHeight - 8 };
     };
 
     const measure = () => {
@@ -216,8 +249,8 @@ export function ProjectCards() {
       k = cards[0].offsetWidth / 982;
       // The group sits centred in the free space. The hero peek follows from this too.
       const { top, bottom } = freeSpace();
-      const group = STEP_Y * SHOWN * k + cards[0].offsetHeight + TABS_GAP + tabs.offsetHeight;
-      const stackTop = Math.max(8, top + (bottom - top - group) / 2);
+      const group = STEP_Y * SHOWN * k + cards[0].offsetHeight + (innerWidth >= COLS_MIN ? lift() + controls.offsetHeight : BAR_GAP + bar.offsetHeight);
+      const stackTop = Math.max(8, top + (bottom - top - group) / 2 - raise());
       section.style.setProperty("--stack-top", `${stackTop}px`);
       pinAt = Math.max(1, section.getBoundingClientRect().top + scrollY);   // scroll position where the deck fills the screen
       warp(section.getBoundingClientRect().top);   // sets the spacing too
@@ -230,6 +263,7 @@ export function ProjectCards() {
     addEventListener("resize", measure);
     const ro = new ResizeObserver(measure);   // the front card grows once its fonts and image load
     ro.observe(cards[0]);
+    ro.observe(bar);   // the summary can wrap differently per project
     return () => {
       ro.disconnect();
       clearTimeout(switchTimer);
@@ -237,11 +271,12 @@ export function ProjectCards() {
       removeEventListener("scroll", kick);
       removeEventListener("resize", measure);
       setWarp(0);   // other pages are flat
+      document.documentElement.classList.remove("deck-focus");
     };
   }, []);
 
   // Bring a card to the front. From the hero (deck not fully in view), scroll down to the deck too.
-  const select = (i: number) => {
+  const select = (i: number, follow = true) => {
     const order = orderRef.current;
     if (order[0] === i || busy.current) return;
     const out = order.slice(0, order.indexOf(i));          // the cards in front of it
@@ -254,10 +289,25 @@ export function ProjectCards() {
     satTimer.current = setTimeout(() => { rollJitter(); setSatFor(i); }, instant ? 0 : OUT_MS);
     switchRef.current(out);
     const section = sectionRef.current!;
-    if (section.getBoundingClientRect().top > 1) {
+    if (follow && section.getBoundingClientRect().top > 1) {
       scrollTo({ top: section.getBoundingClientRect().top + scrollY, behavior: "smooth" });
     }
   };
+
+  // The countdown: the active number's line fills over its hold, then the next project comes up.
+  // It's a CSS animation, so pausing it (offscreen, a project open, the tab hidden) keeps its place.
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const on = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", on);
+    return () => document.removeEventListener("visibilitychange", on);
+  }, []);
+  const running = pinned && home && !hidden;
+  const next = () => {
+    if (busy.current) { setTimeout(next, 300); return; }   // a switch is still landing
+    select((active + 1) % projects.length, false);
+  };
+  const p = projects[active];
 
   const gallery = satFor === null ? [] : projects[satFor].gallery ?? [];
 
@@ -278,43 +328,68 @@ export function ProjectCards() {
         </div>
 
         <ul className="deck-cards">
-          {projects.map((p, i) => (
-            <li key={p.slug} className="deck-card">
-              {/* The front card opens the project (scroll={false}: the modal shouldn't move the page
-                  underneath); a card peeking out behind comes to the front instead */}
-              <Link
-                href={`/design/${p.slug}`}
-                scroll={false}
+          {projects.map((q, i) => (
+            <li key={q.slug} className="deck-card">
+              {/* Just the cover. A card peeking out behind comes to the front; the front one doesn't
+                  open anything ("Open project" under the stack does) */}
+              <div
                 className="deck-link"
-                aria-label={i === active ? undefined : `Show ${p.title}`}
-                onClick={(e) => {
-                  if (i === active) return;
-                  e.preventDefault();
-                  select(i);
-                }}
+                role={i === active ? undefined : "button"}
+                tabIndex={i === active ? undefined : 0}
+                aria-label={i === active ? undefined : `Show ${q.title}`}
+                onClick={() => select(i)}
+                onKeyDown={(e) => { if (i !== active && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(i); } }}
               >
                 <span className="deck-img">
-                  <Cover cover={p.cover} sizes="(max-width: 1023px) calc(100vw - 32px), 982px" eager={i < 3} />
+                  <Cover cover={q.cover} sizes="(max-width: 1023px) calc(100vw - 32px), 982px" eager={i < 3} />
                 </span>
-                <span className="deck-text">
-                  <span className="deck-title">{p.title}</span>
-                  <span className="deck-summary">{p.summary}</span>
-                </span>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>
 
-        {/* Under the front card, outside the warped stack so it stays flat */}
-        <nav className="deck-tabs" aria-label="Projects">
-          {projects.map((p, i) => (
-            <button key={p.slug} type="button" aria-current={i === active || undefined} onClick={() => select(i)}>
-              {p.short}
-            </button>
-          ))}
-        </nav>
-      </div>
+        {/* Under the front card, outside the warped stack so it stays flat: the project on the left;
+            the counter and "Open project" on the right */}
+        <div className="deck-bar">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div key={p.slug} className="deck-about"
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
+              <p className="deck-co">
+                {p.logo
+                  // eslint-disable-next-line @next/next/no-img-element -- tiny static SVG
+                  ? <img src={p.logo} width={16} height={16} alt="" />
+                  : <span className="deck-co-tile" aria-hidden="true">{p.title[0]}</span>}
+                {p.title}
+              </p>
+              <p className="deck-story"><Marked text={p.summary} /></p>
+            </motion.div>
+          </AnimatePresence>
+          <div className="deck-controls">
+            <nav className="deck-count" aria-label="Projects">
+              {projects.map((q, i) => (
+                <button key={q.slug} type="button" aria-label={q.title} aria-current={i === active || undefined}
+                  onClick={() => select(i, false)}>
+                  {String(i + 1).padStart(2, "0")}
+                  {i === active && (
+                    <span className="deck-timer" key={q.slug} data-run={running || undefined}
+                      style={{ animationDuration: `${HOLD_FOR[q.slug] ?? HOLD}ms` }} onAnimationEnd={next} />
+                  )}
+                </button>
+              ))}
+            </nav>
+            <Link href={`/design/${p.slug}`} scroll={false} className="deck-open">
+              View project
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+          </div>
+        </div>
 
+        {/* Along the bottom of the screen, peeking up under the work */}
+        <Highlights />
+      </div>
     </section>
   );
 }

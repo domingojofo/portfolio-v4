@@ -22,6 +22,10 @@ const gelica = localFont({
   ],
   variable: "--font-gelica",
   display: "block",
+  // The demo files draw a "DEMO" mark for numbers and most symbols (4 $ # ( ) + - / & …): leave
+  // those out, so they fall back to a matched serif. Letters, accents and basic punctuation stay.
+  declarations: [{ prop: "unicode-range", value: "U+0020, U+002C, U+002E, U+003A-003B, U+003F, U+0041-005A, U+0061-007A, U+00C0-00FF, U+2013-2014, U+2018-2019, U+201C-201D, U+2026" }],
+  adjustFontFallback: "Times New Roman",
 });
 
 // Everything that isn't Gelica: text, headlines, UI
