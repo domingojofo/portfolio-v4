@@ -337,11 +337,16 @@ html.fonts-loading .deck-bar { visibility: hidden; }
 /* =========================================================================
    Closing section (Closing.tsx) — Figma "Hero — Final frame (1440)": the giant words, the marble
    hand and the cursor hand (CursorHand.tsx). .closing-art is the frame (1440 × 1094, the ticker
-   above it left out), scaled to the width: --u is one frame px.
+   above it left out): --u is one frame px, scaled to the width — or, where that would be too tall,
+   to fit the whole footer in 95svh (a little of the ticker shows above it). Then the frame is
+   narrower than the screen: "Relentlessly" and the marble hand keep to the right edge,
+   "Collaborative" to the left, and the cursor rows run on to the left edge.
    ========================================================================= */
-.closing { position: relative; padding: 0 0 calc(var(--dock) + 24px); color: #1D344A; overflow-x: clip; }
-.closing-art { position: relative; aspect-ratio: 1440 / 1094; container-type: inline-size; }
-.closing-art > * { --u: calc(100cqw / 1440); }
+.closing {
+  --u: min(100vw / 1440, (95svh - var(--dock) - 24px) / 1094);
+  position: relative; padding: 0 0 calc(var(--dock) + 24px); color: #1D344A; overflow-x: clip;
+}
+.closing-art { position: relative; height: calc(1094 * var(--u)); }
 
 /* Gelica ExtraLight 202.8px, −4% tracking: "Relentlessly" top right, "Collaborative" bottom left */
 .giant {
@@ -353,14 +358,14 @@ html.fonts-loading .deck-bar { visibility: hidden; }
 }
 .giant > span { position: absolute; white-space: nowrap; }
 .giant br { display: none; }
-.giant > span:first-child { left: calc(420 * var(--u)); top: calc(74 * var(--u)); }
+.giant > span:first-child { left: calc(100% - 1020 * var(--u)); top: calc(74 * var(--u)); }
 .giant > span:last-child { left: calc(17 * var(--u)); top: calc(840 * var(--u)); }
 .giant .rv-scr { color: rgb(15 33 50 / .35); }
 
 /* The marble hand, turned 15° as in the frame; it comes in out of a blur (Linear-style) with the cursors */
 .closing-hand {
   position: absolute; z-index: 2;
-  left: calc(598.23 * var(--u)); top: calc(384.19 * var(--u));
+  left: calc(100% - 841.77 * var(--u)); top: calc(384.19 * var(--u));
   width: calc(959.93 * var(--u)); height: auto;
   rotate: 15deg;
   pointer-events: none;

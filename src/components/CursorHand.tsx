@@ -10,15 +10,16 @@ import { useEffect, useRef } from "react";
 //  - Cursors near the pointer slide out of its way and turn to point at it, then spring back
 // Nothing runs at rest: the loop only ticks while something is moving. Reduced motion: a still.
 //
-// Positions are the Figma frame's px (1440 wide, the ticker above it left out), scaled to the
-// section's width.
+// Positions are the Figma frame's px (1440 wide, the ticker above it left out), scaled to fit
+// (.closing-art) and kept to the right edge with the marble hand. When the frame is narrower than
+// the screen, the cursor rows carry on to the left edge, so the stream still runs off the page.
 
 // Each cursor's centre and heading in the SVG's own space (x, y, degrees)
 const CURSORS = `739.1,78.1,-9 783.1,69.9,-7 827.0,62.6,-3 871.0,60.4,0 752.6,146.8,48 783.6,184.7,75 785.7,229.5,88 706.0,151.6,80 713.0,194.5,92 707.7,235.6,100 206.0,85.4,0 165.5,85.3,0 121.5,85.3,0 77.5,85.3,0 250.0,85.3,0 294.0,85.3,0 338.0,85.3,0 382.0,85.3,0 426.0,85.3,0 470.0,85.3,0 514.0,85.3,0 558.0,85.3,0 602.1,84.7,8 646.1,84.7,8 690.1,84.7,8 96.0,129.3,0 140.0,129.3,0 184.0,129.3,0 228.0,129.3,0 272.0,129.3,0 316.0,129.3,0 360.0,129.3,0 404.0,129.3,0 448.0,129.3,0 492.0,129.3,0 536.0,129.3,0 580.0,129.3,0 624.1,128.7,8 668.1,128.7,8 74.0,173.3,0 118.0,173.3,0 162.0,173.3,0 206.0,173.3,0 250.0,173.3,0 294.0,173.3,0 338.0,173.3,0 382.0,173.3,0 426.0,173.3,0 470.0,173.3,0 514.0,173.3,0 646.1,172.7,8 96.0,217.3,0 140.0,217.3,0 184.0,217.3,0 228.0,217.3,0 272.0,217.3,0 316.0,217.3,0 360.0,217.3,0 74.0,261.4,0`;
 // One arrow, pointing right, centred on its middle (the Figma cursor's path)
 const ARROW = "M-9.67 -14L-8.66 -9.74C-7.82 -6.18 -5.16 -3.34 -1.67 -2.27V2.27C-5.16 3.34 -7.82 6.18 -8.66 9.73L-9.67 14L19.33 0Z";
 
-const W = 1440;
+const W = 1440, H = 1094;   // the frame
 const TILT = (15 * Math.PI) / 180;              // the group is turned 15° in the frame
 const ORIGIN = { x: 238.564, y: 505.491 };      // …about this point (frame px)
 const SVG_CENTRE = { x: 477.352, y: 160.85 };   // the SVG point that lands there
@@ -28,6 +29,7 @@ const PUSH = 30;     // how far the nearest ones slide away
 const INTRO_MS = 900, INTRO_SPREAD = 750, INTRO_FROM = 70;   // stream in: each one's duration, the left-to-right stagger, distance
 
 type Cursor = { rx: number; ry: number; ra: number; x: number; y: number; a: number; delay: number };
+const STEP = 44;   // the cursor rows' spacing (SVG px)
 
 export function CursorHand() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -39,21 +41,36 @@ export function CursorHand() {
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cos = Math.cos(TILT), sin = Math.sin(TILT);
 
-    // Rest positions in frame px
-    const cursors: Cursor[] = CURSORS.split(" ").map((c) => {
-      const [sx, sy, deg] = c.split(",").map(Number);
-      const qx = sx - SVG_CENTRE.x, qy = sy - SVG_CENTRE.y;
-      const rx = ORIGIN.x + qx * cos - qy * sin, ry = ORIGIN.y + qx * sin + qy * cos;
-      return { rx, ry, ra: (deg * Math.PI) / 180 + TILT, x: rx, y: ry, a: 0, delay: 0 };
-    });
-    cursors.forEach((c) => (c.a = c.ra));
-    const xs = cursors.map((c) => c.rx), ys = cursors.map((c) => c.ry);
-    const PAD = 110;   // room for the shadow, the push and the intro
-    const box = { x: Math.min(...xs) - PAD - INTRO_FROM, y: Math.min(...ys) - PAD, r: Math.max(...xs) + PAD, b: Math.max(...ys) + PAD };
-    const minX = Math.min(...xs), spanX = Math.max(...xs) - minX;
-    cursors.forEach((c) => (c.delay = ((c.rx - minX) / spanX) * INTRO_SPREAD));
+    // Rest positions in frame px; `left` is how far (frame px) the rows must reach past the frame's left edge
+    const SVG = CURSORS.split(" ").map((c) => c.split(",").map(Number));
+    let cursors: Cursor[] = [];
+    const box = { x: 0, y: 0, r: 0, b: 0 };
+    const build = (left: number) => {
+      const pts = SVG.slice();
+      // Carry each straight row (heading 0) on to the left, one step at a time
+      const rows = new Map<number, number>();
+      for (const [x, y, deg] of SVG) if (deg === 0 && x < 300) rows.set(Math.round(y), Math.min(rows.get(Math.round(y)) ?? x, x));
+      for (const [y, x0] of rows) {
+        for (let x = x0 - STEP; ; x -= STEP) {
+          const fx = ORIGIN.x + (x - SVG_CENTRE.x) * cos - (y - SVG_CENTRE.y) * sin;
+          if (fx < -left - 40) break;
+          pts.push([x, y, 0]);
+        }
+      }
+      cursors = pts.map(([sx, sy, deg]) => {
+        const qx = sx - SVG_CENTRE.x, qy = sy - SVG_CENTRE.y;
+        const rx = ORIGIN.x + qx * cos - qy * sin, ry = ORIGIN.y + qx * sin + qy * cos;
+        const ra = (deg * Math.PI) / 180 + TILT;
+        return { rx, ry, ra, x: rx, y: ry, a: ra, delay: 0 };
+      });
+      const xs = cursors.map((c) => c.rx), ys = cursors.map((c) => c.ry);
+      const PAD = 110;   // room for the shadow, the push and the intro
+      Object.assign(box, { x: Math.min(...xs) - PAD - INTRO_FROM, y: Math.min(...ys) - PAD, r: Math.max(...xs) + PAD, b: Math.max(...ys) + PAD });
+      const minX = Math.min(...xs), spanX = Math.max(...xs) - minX;
+      cursors.forEach((c) => (c.delay = ((c.rx - minX) / spanX) * INTRO_SPREAD));
+    };
 
-    let k = 1, s = 1;   // canvas px per frame px; css px per frame px
+    let k = 1, s = 1, ox = 0;   // canvas px per frame px; css px per frame px; where the frame's left edge sits (css px)
     let body: HTMLCanvasElement, shadow: HTMLCanvasElement;
     const arrow = new Path2D(ARROW);
 
@@ -86,10 +103,12 @@ export function CursorHand() {
     };
 
     const size = () => {
-      s = section.clientWidth / W;
+      s = section.clientHeight / H;
+      ox = section.clientWidth - W * s;   // the frame keeps to the right edge
+      build(ox / s);
       k = s * Math.min(devicePixelRatio || 1, 2);
       Object.assign(canvas.style, {
-        left: `${box.x * s}px`, top: `${box.y * s}px`,
+        left: `${ox + box.x * s}px`, top: `${box.y * s}px`,
         width: `${(box.r - box.x) * s}px`, height: `${(box.b - box.y) * s}px`,
       });
       canvas.width = Math.ceil((box.r - box.x) * k);
@@ -171,7 +190,7 @@ export function CursorHand() {
 
     const onMove = (e: PointerEvent) => {
       const r = section.getBoundingClientRect();
-      pointer = { x: (e.clientX - r.left) / s, y: (e.clientY - r.top) / s };
+      pointer = { x: (e.clientX - r.left - ox) / s, y: (e.clientY - r.top) / s };
       kick();
     };
     const onLeave = () => { pointer = null; kick(); };
