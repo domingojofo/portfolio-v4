@@ -34,19 +34,17 @@ import { makeBend, setWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/warp";
 // (src/lib/warp.ts). The deck drives that from the scroll position — 1 at the top of the page,
 // 0 once the deck reaches the top — and rides its cards on the same surface as the dots.
 
-const STEP_Y = 60;       // px each card behind sits higher (at a 982px-wide card) — even steps, deep
+const STEP_Y = 40;       // px each card behind sits higher (at a 982px-wide card) — even steps, deep
                          // enough past the card's padding to show a band of its image…
 const STEP_TIGHT = 22;   // …and how tight they start, in the hero (the spacing opens up with the scroll)
 const STEP_S = 0.06;     // scale lost per step behind — even steps
 const SHOWN = projects.length - 1;   // cards visible behind the front one: all of them
 const GROUP = 0.95;      // the stack + front card + tabs take up this much of the space between the top bar and the floating nav
 const RATIO = 1.12;      // the cover's width to its height (stacked layout)…
-const RATIO_COLS = 1.08; // …and in three columns: close to square, before the lift below
+const RATIO_COLS = 1.08; // …and in three columns, where the height is set by the company line
 const BAR_GAP = 20;      // px between the front card and the bar under it (stacked layout)
 const COLS_MIN = 1200;   // px wide from which the section is three columns (matches globals.css)
-const COLS_LIFT = 0.06;  // three columns: the front card is this much of the screen's height shorter…
-const COLS_RAISE = 0.03; // …and the stack sits this much higher
-const COLS_BOTTOM = 24;  // px from the highlights ticker to the project and counter (the nav is hidden here)
+const COLS_BOTTOM = 24;  // px from the highlights ticker's peek to the project and counter (the nav is hidden here)
 const HOLD = 8000;       // ms each project stays in front before the counter moves on…
 const HOLD_FOR: Record<string, number> = { elevenlabs: 12500 };   // …long enough for its cover's loop
 const OUT_MS = 620, IN_MS = 520, IN_GAP = 150;   // slide down and away (ease-in) → pixelate back in
@@ -86,10 +84,8 @@ export function ProjectCards() {
     const bar = section.querySelector<HTMLElement>(".deck-bar")!;
     const controls = bar.querySelector<HTMLElement>(".deck-controls")!;
     const ticker = section.querySelector<HTMLElement>(".marquee")!;
-    const lift = () => (innerWidth >= COLS_MIN ? COLS_LIFT * innerHeight : 0);
-    const raise = () => (innerWidth >= COLS_MIN ? COLS_RAISE * innerHeight : 0);
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0, k = 1, pinAt = 1, step = STEP_Y;
+    let raf = 0, k = 1, pinAt = 1, step = STEP_Y, colsTop = 0;
     const leaving = new Set<number>();   // cards mid slide-out: place() leaves them alone
     const at = (d: number, slide = 0) => `translate3d(-50%, ${-step * d * k + slide}px, 0) scale(${1 - STEP_S * d})`;
 
@@ -200,13 +196,14 @@ export function ProjectCards() {
       // Just under the front card; in three columns, beside it, level with its bottom edge
       const cardBottom = cards[0].offsetTop + cards[0].offsetHeight;
       // (three columns: at the bottom of the screen, the project text ending level with the counter's row)
-      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - ticker.offsetHeight - COLS_BOTTOM - bar.offsetHeight : cardBottom + BAR_GAP}px`;
+      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - ticker.offsetHeight / 2 - COLS_BOTTOM - bar.offsetHeight : cardBottom + BAR_GAP}px`;
       bar.dataset.placed = "";
       // The counter runs while the deck fills the screen (through the pause), not from the hero
       const bottom = section.getBoundingClientRect().bottom;
       setPinned(top <= 1 && bottom > innerHeight * 0.6);
       // While the deck fills the screen, the bottom nav and LinkedIn/CV step away (globals.css)
       document.documentElement.classList.toggle("deck-focus", top <= innerHeight * 0.15 && bottom > innerHeight * 0.55);
+      document.documentElement.classList.toggle("deck-reached", top <= innerHeight * 0.15);   // the ticker shows from here on
       // Thumbnails appear one at a time once the deck is a little way in
       const scrolled = (pinAt - top) / innerHeight;
       setSatsIn(Math.max(0, Math.min(4, Math.floor(scrolled / SAT_STEP) - 1)));
@@ -231,7 +228,18 @@ export function ProjectCards() {
         w = Math.min(maxW, imgH * ratio + pad * 2);
         imgH = Math.min(imgH, (w - pad * 2) / ratio);   // capped by the width: keep the shape (shorter, not taller)
       }
-      imgH -= lift();   // three columns: the same width, shorter, its bottom edge raised
+      if (cols) {
+        // Three columns: the stack starts just under the top bar and the front card runs down to
+        // the bottom of the company line (logo + name) in the left column
+        const co = bar.querySelector<HTMLElement>(".deck-co");
+        const barTop = stage.offsetHeight - ticker.offsetHeight / 2 - COLS_BOTTOM - bar.offsetHeight;
+        const coBottom = barTop + (co ? co.offsetTop + co.offsetHeight : 0) - (stage.offsetHeight - innerHeight);   // on screen
+        colsTop = top + 6;
+        for (let n = 0; n < 4; n++) {
+          imgH = coBottom - (colsTop + STEP_Y * SHOWN * (w / 982));
+          w = Math.min(maxW, imgH * ratio);
+        }
+      }
       section.style.setProperty("--card-w", `${Math.round(w)}px`);
       section.style.setProperty("--img-h", `${Math.max(120, Math.round(imgH))}px`);
       section.dataset.sized = "";
@@ -241,7 +249,7 @@ export function ProjectCards() {
     // LinkedIn/CV are hidden while the deck fills the screen)
     const freeSpace = () => {
       const bar = document.querySelector(".nav-inner")?.getBoundingClientRect();
-      return { top: bar ? bar.bottom : 0, bottom: innerHeight - ticker.offsetHeight - 8 };
+      return { top: bar ? bar.bottom : 0, bottom: innerHeight - ticker.offsetHeight / 2 - 8 };   // half the ticker peeks
     };
 
     const measure = () => {
@@ -249,14 +257,36 @@ export function ProjectCards() {
       k = cards[0].offsetWidth / 982;
       // The group sits centred in the free space. The hero peek follows from this too.
       const { top, bottom } = freeSpace();
-      const group = STEP_Y * SHOWN * k + cards[0].offsetHeight + (innerWidth >= COLS_MIN ? lift() + controls.offsetHeight : BAR_GAP + bar.offsetHeight);
-      const stackTop = Math.max(8, top + (bottom - top - group) / 2 - raise());
+      const group = STEP_Y * SHOWN * k + cards[0].offsetHeight + BAR_GAP + bar.offsetHeight;
+      const stackTop = innerWidth >= COLS_MIN ? colsTop : Math.max(8, top + (bottom - top - group) / 2);
       section.style.setProperty("--stack-top", `${stackTop}px`);
       pinAt = Math.max(1, section.getBoundingClientRect().top + scrollY);   // scroll position where the deck fills the screen
       warp(section.getBoundingClientRect().top);   // sets the spacing too
       place();
       kick();
     };
+
+    // The cards lean toward the cursor (desktop): the side nearest it tips up toward you
+    const tilt = { x: 0, y: 0, tx: 0, ty: 0 };
+    let tiltRaf = 0;
+    const tiltStep = () => {
+      tilt.x += (tilt.tx - tilt.x) * 0.12;
+      tilt.y += (tilt.ty - tilt.y) * 0.12;
+      section.style.setProperty("--tilt-x", tilt.x.toFixed(3));
+      section.style.setProperty("--tilt-y", tilt.y.toFixed(3));
+      tiltRaf = Math.abs(tilt.tx - tilt.x) + Math.abs(tilt.ty - tilt.y) > 0.002 ? requestAnimationFrame(tiltStep) : 0;
+    };
+    const onPointer = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || reduce) return;
+      const r = cards[orderRef.current[0]].getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      tilt.tx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (innerWidth / 2)));
+      tilt.ty = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (innerHeight / 2)));
+      if (!tiltRaf) tiltRaf = requestAnimationFrame(tiltStep);
+    };
+    const onLeave = () => { tilt.tx = 0; tilt.ty = 0; if (!tiltRaf) tiltRaf = requestAnimationFrame(tiltStep); };
+    addEventListener("pointermove", onPointer, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onLeave);
 
     measure();
     addEventListener("scroll", kick, { passive: true });
@@ -268,10 +298,13 @@ export function ProjectCards() {
       ro.disconnect();
       clearTimeout(switchTimer);
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(tiltRaf);
+      removeEventListener("pointermove", onPointer);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
       removeEventListener("scroll", kick);
       removeEventListener("resize", measure);
       setWarp(0);   // other pages are flat
-      document.documentElement.classList.remove("deck-focus");
+      document.documentElement.classList.remove("deck-focus", "deck-reached");
     };
   }, []);
 
@@ -330,20 +363,23 @@ export function ProjectCards() {
         <ul className="deck-cards">
           {projects.map((q, i) => (
             <li key={q.slug} className="deck-card">
-              {/* Just the cover. A card peeking out behind comes to the front; the front one doesn't
-                  open anything ("Open project" under the stack does) */}
-              <div
+              {/* Just the cover. The front one opens the project (scroll={false}: the modal shouldn't
+                  move the page underneath); a card peeking out behind comes to the front instead */}
+              <Link
+                href={`/design/${q.slug}`}
+                scroll={false}
                 className="deck-link"
-                role={i === active ? undefined : "button"}
-                tabIndex={i === active ? undefined : 0}
-                aria-label={i === active ? undefined : `Show ${q.title}`}
-                onClick={() => select(i)}
-                onKeyDown={(e) => { if (i !== active && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(i); } }}
+                aria-label={i === active ? `Open ${q.title}` : `Show ${q.title}`}
+                onClick={(e) => {
+                  if (i === active) return;
+                  e.preventDefault();
+                  select(i);
+                }}
               >
                 <span className="deck-img">
-                  <Cover cover={q.cover} sizes="(max-width: 1023px) calc(100vw - 32px), 982px" eager={i < 3} />
+                  <Cover cover={q.cover} sizes="(max-width: 1023px) calc(100vw - 32px), 982px" eager={i < 3} live={home && i === active} deck />
                 </span>
-              </div>
+              </Link>
             </li>
           ))}
         </ul>
@@ -378,18 +414,15 @@ export function ProjectCards() {
                 </button>
               ))}
             </nav>
-            <Link href={`/design/${p.slug}`} scroll={false} className="deck-open">
-              View project
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
+            <Link href={`/design/${p.slug}`} scroll={false} className="deck-open">View project</Link>
           </div>
         </div>
 
-        {/* Along the bottom of the screen, peeking up under the work */}
-        <Highlights />
       </div>
+
+      {/* After the stage: half of it peeks up along the bottom of the screen while the deck holds
+          (sticky), then it scrolls up whole with the deck, uncovering the footer (globals.css) */}
+      <Highlights />
     </section>
   );
 }

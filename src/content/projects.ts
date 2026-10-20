@@ -9,8 +9,9 @@ type Img = { src: string; width: number; height: number; alt: string };
 type Cover = Img & {
   video?: string;
   gradient?: { colors?: string[]; speed?: number; warp?: number; grain?: number };
-  /** An animated scene drawn over the gradient */
-  scene?: "elevenlabs";
+  /** An animated scene: drawn over the gradient (elevenlabs), the whole cover (anchorage), or a
+   *  device over the cover video (oamo) */
+  scene?: "elevenlabs" | "anchorage" | "oamo";
 };
 
 export type Project = {
@@ -41,11 +42,13 @@ export const projects: Project[] = [
       "Led the bank’s **fiat experience**, launching **payment methods and interest** that earned **$1M in 3 months**.",
     year: "2022 — Now",
     role: "Staff product designer",
+    // Hero: the Cash management app touring itself over The Creation of Adam (AnchorageScene)
     cover: {
-      src: "/images/design-placeholder.png",
-      width: 2028,
-      height: 1101,
-      alt: "Anchorage Cash dashboard showing a $1,000,000 balance and portfolio overview",
+      src: "/images/anchorage-creation.jpg",
+      width: 1894,
+      height: 1260,
+      alt: "Anchorage cash management — balances, holdings and allocation, over Michelangelo's The Creation of Adam",
+      scene: "anchorage",
     },
     // Placeholder thumbnails — swap for real detail shots
     gallery: [
@@ -85,13 +88,15 @@ export const projects: Project[] = [
       "**Lead product designer** across brand, marketing, UX, UI, motion and web, as it **grew past 200k users** and was **acquired**.",
     year: "",
     role: "Lead product designer",
-    // Hero for now: the bounce loop (silent, 720px H.264); the poster is its first frame
+    // Hero: the bounce loop (silent, 720px H.264; the poster is its first frame) with the MacBook and
+    // iPhone from the Interview Presentation slide on top (OamoScene)
     cover: {
       src: "/images/oamo-bounce-poster.jpg",
       video: "/images/oamo-bounce.mp4",
       width: 1080,
       height: 1080,
-      alt: "OAMO — yellow, white and black links tumbling together",
+      alt: "The Oamo landing page on a MacBook and an iPhone, over yellow, white and black links tumbling together",
+      scene: "oamo",
     },
     // Placeholder thumbnails — stills from the bounce loop
     gallery: [

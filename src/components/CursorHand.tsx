@@ -11,15 +11,16 @@ import { useEffect, useRef } from "react";
 // Nothing runs at rest: the loop only ticks while something is moving. Reduced motion: a still.
 //
 // Positions are the Figma frame's px (1440 wide, the ticker above it left out), scaled to fit
-// (.closing-art) and kept to the right edge with the marble hand. When the frame is narrower than
-// the screen, the cursor rows carry on to the left edge, so the stream still runs off the page.
+// (.closing-art), with the meeting point (the marble finger, MEET) at the middle of the screen. The
+// cursor rows carry on to the left edge, so the stream always runs off the page.
 
 // Each cursor's centre and heading in the SVG's own space (x, y, degrees)
 const CURSORS = `739.1,78.1,-9 783.1,69.9,-7 827.0,62.6,-3 871.0,60.4,0 752.6,146.8,48 783.6,184.7,75 785.7,229.5,88 706.0,151.6,80 713.0,194.5,92 707.7,235.6,100 206.0,85.4,0 165.5,85.3,0 121.5,85.3,0 77.5,85.3,0 250.0,85.3,0 294.0,85.3,0 338.0,85.3,0 382.0,85.3,0 426.0,85.3,0 470.0,85.3,0 514.0,85.3,0 558.0,85.3,0 602.1,84.7,8 646.1,84.7,8 690.1,84.7,8 96.0,129.3,0 140.0,129.3,0 184.0,129.3,0 228.0,129.3,0 272.0,129.3,0 316.0,129.3,0 360.0,129.3,0 404.0,129.3,0 448.0,129.3,0 492.0,129.3,0 536.0,129.3,0 580.0,129.3,0 624.1,128.7,8 668.1,128.7,8 74.0,173.3,0 118.0,173.3,0 162.0,173.3,0 206.0,173.3,0 250.0,173.3,0 294.0,173.3,0 338.0,173.3,0 382.0,173.3,0 426.0,173.3,0 470.0,173.3,0 514.0,173.3,0 646.1,172.7,8 96.0,217.3,0 140.0,217.3,0 184.0,217.3,0 228.0,217.3,0 272.0,217.3,0 316.0,217.3,0 360.0,217.3,0 74.0,261.4,0`;
 // One arrow, pointing right, centred on its middle (the Figma cursor's path)
 const ARROW = "M-9.67 -14L-8.66 -9.74C-7.82 -6.18 -5.16 -3.34 -1.67 -2.27V2.27C-5.16 3.34 -7.82 6.18 -8.66 9.73L-9.67 14L19.33 0Z";
 
-const W = 1440, H = 1094;   // the frame
+const H = 1094;   // the frame's height (it's 1440 wide)
+const MEET = 678;           // frame x of the marble hand's fingertip — kept at the screen's centre (globals.css)
 const TILT = (15 * Math.PI) / 180;              // the group is turned 15° in the frame
 const ORIGIN = { x: 238.564, y: 505.491 };      // …about this point (frame px)
 const SVG_CENTRE = { x: 477.352, y: 160.85 };   // the SVG point that lands there
@@ -104,7 +105,7 @@ export function CursorHand() {
 
     const size = () => {
       s = section.clientHeight / H;
-      ox = section.clientWidth - W * s;   // the frame keeps to the right edge
+      ox = section.clientWidth / 2 - MEET * s;
       build(ox / s);
       k = s * Math.min(devicePixelRatio || 1, 2);
       Object.assign(canvas.style, {
@@ -185,7 +186,7 @@ export function CursorHand() {
       section.classList.add("is-in");
       kick();
       io.disconnect();
-    }, { threshold: 0.3 });
+    }, { threshold: 0.3 });   // once a third of the footer is uncovered (before the words)
     io.observe(section);
 
     const onMove = (e: PointerEvent) => {

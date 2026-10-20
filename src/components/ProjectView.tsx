@@ -4,6 +4,7 @@ import { BanksHeroCard } from "./demos/banks/BanksHeroCard";
 import { ChippFeaturesCard, ChippHeroCard, ChippRow } from "./demos/chipp/ChippCards";
 import { TrustedDestinationsCard } from "./demos/trusted-destinations/TrustedDestinationsCard";
 import { VirtualAccountsCard } from "./demos/va-charts/VirtualAccountsCard";
+import { OamoGallery } from "./demos/oamo/OamoGallery";
 import { VoiceStudioCard } from "./demos/voice-studio/VoiceStudioCard";
 import { Marked } from "./Marked";
 
@@ -24,6 +25,11 @@ export function ProjectView({ project, headingId }: { project: Project; headingI
       <p><Marked text={project.summary} /></p>
       {project.slug === "anchorage" && <AnchorageBody />}
       {project.slug === "chipp" && <ChippBody />}
+      {project.slug === "oamo" && (
+        <Section title="Product">
+          <OamoGallery />
+        </Section>
+      )}
       {project.slug === "elevenlabs" && (
         <Section title="Voice generation">
           <VoiceStudioCard />

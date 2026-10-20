@@ -4,13 +4,14 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./elevenlabs-scene.css";
 
-// ElevenLabs cover scene, drawn over the animated GradientField — the generate flow from Figma
+// ElevenLabs cover scene — the generate flow from Figma
 // "Portfolio Update 2026" (frames 435:13153 → 435:13213):
 //   1. The text box sits alone in the middle; text types itself in and Generate turns on
 //   2. Generate is pressed (by the loop, or by the visitor) → it shows a spinner, a skeleton voice
 //      card appears above while the text box slides down
-//   3. The voice card fades in over the skeleton and starts playing: it takes on colour, the play
-//      button becomes pause with a pulse ring; the box now reads "2 left" · Regenerate
+//   3. The voice card fades in over the skeleton and starts playing: it and the backdrop take on
+//      colour, the play button becomes pause with a pulse ring; the box now reads "2 left"
+// The backdrop is the voice card's grey wave, full bleed; both card and box have a glass rim.
 //   4. It rests, resets, and loops (only while on screen; reduced motion: the finished state)
 // Laid out at the frames' 767×755 and scaled to fit its box.
 
@@ -18,7 +19,7 @@ const dir = "/demos/elevenlabs";
 const SHOW_TOP = 22, SHOW_BOTTOM = 725;   // frame px shown, top → bottom
 const CX = 383.5;                          // horizontal centre, frame px
 const LINE = "Hey! Kamusta? I’m Jofo — turning a few words into a voice that sounds like a person.";
-const TYPE_MS = 38;
+const TYPE_MS = 16;
 
 type Phase = "idle" | "typing" | "ready" | "press" | "loading" | "reveal" | "playing" | "rest" | "reset";
 
@@ -75,7 +76,7 @@ export function ElevenLabsScene() {
       n += 1;
       setTyped(n);
       if (n === 1) set("typing");
-      if (n < LINE.length) at(TYPE_MS + (LINE[n - 1] === " " ? 28 : 0), typeNext);
+      if (n < LINE.length) at(TYPE_MS + (LINE[n - 1] === " " ? 12 : 0), typeNext);
       else { set("ready"); at(900, generate); }
     };
     const start = () => typeNext();
@@ -108,10 +109,10 @@ export function ElevenLabsScene() {
   const hasText = typed > 0;
   const after = phase === "loading" || phase === "reveal" || phase === "playing" || phase === "rest";
   const enabled = phase === "ready" || phase === "typing";
-  const label = after ? "Regenerate" : "Generate";
 
   return (
     <div className="els" ref={ref} data-phase={phase} aria-hidden>
+      <span className="els-backdrop"><img src={`${dir}/blur.png`} alt="" /><span className="els-backdrop-tint" /></span>
       <div className="els-frame">
         {/* Skeleton → voice card */}
         <div className="els-card els-skeleton">
@@ -156,11 +157,11 @@ export function ElevenLabsScene() {
           <div className="els-actions">
             <span className="els-left">{after ? "2 left" : "3 left"}</span>
             <span
-              className={`els-gen${enabled ? " is-on" : ""}${after ? " is-regen" : ""}`}
+              className={`els-gen${enabled ? " is-on" : ""}`}
               onClick={onGenerate}
             >
               {phase === "press" || phase === "loading" ? <span className="els-spin" /> : null}
-              <span>{label}</span>
+              <span>Generate</span>
               <span className="els-free"><img src={`${dir}/leaf.svg`} alt="" />Free</span>
             </span>
           </div>

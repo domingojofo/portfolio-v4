@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { site } from "@/content/site";
 import { pageIndex, pages } from "@/lib/pages";
 import { tick } from "@/lib/tick";
 
@@ -12,6 +13,10 @@ import { tick } from "@/lib/tick";
 //  - Hover / keyboard focus: the tile lifts and brightens, the icon darkens, and a tooltip shows its name.
 //  - The menu's tick plays each time the pointer (or ← →) moves to another icon.
 // Icons follow the page order, so ← / → step through them left to right.
+//  - The links tile at the right end (Figma 395:8561): LinkedIn and the CV slide up above it; a
+//    click away, Escape or a second click slides them back down.
+// On Hey the bar waits off screen until the first scroll, then slides up; it steps down again while
+// the project cards fill the screen (ProjectCards, html.deck-focus) and at the footer.
 
 const icons: Record<string, { icon: string; tooltip: string }> = {
   "/": { icon: "/icons/toolbar/home.svg", tooltip: "Design" },
@@ -25,6 +30,37 @@ export function Toolbar() {
   const current = pages[pageIndex(pathname)].href;
   const [hovered, setHovered] = useState<string | null>(null);
   const target = hovered ?? current;
+  const [linksOpen, setLinksOpen] = useState(false);
+  const linksRef = useRef<HTMLDivElement>(null);
+
+  // Links: close on a click outside or Escape
+  useEffect(() => {
+    if (!linksOpen) return;
+    const onDown = (e: PointerEvent) => { if (!linksRef.current?.contains(e.target as Node)) setLinksOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLinksOpen(false); };
+    addEventListener("pointerdown", onDown);
+    addEventListener("keydown", onKey);
+    return () => { removeEventListener("pointerdown", onDown); removeEventListener("keydown", onKey); };
+  }, [linksOpen]);
+
+  // Hey: away until the first scroll, and again once the footer is in view
+  useEffect(() => {
+    const root = document.documentElement;
+    if (pathname !== "/") { root.classList.remove("nav-away"); return; }
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const footer = document.querySelector(".closing")?.getBoundingClientRect();
+      const atFooter = !!footer && footer.top < innerHeight * 0.5;
+      root.classList.toggle("nav-away", scrollY < 8 || atFooter);
+      if (atFooter) setLinksOpen(false);
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(check); };
+    check();
+    addEventListener("scroll", kick, { passive: true });
+    addEventListener("resize", kick);
+    return () => { cancelAnimationFrame(raf); removeEventListener("scroll", kick); removeEventListener("resize", kick); root.classList.remove("nav-away"); };
+  }, [pathname]);
 
   // Tick when the highlighted icon changes by pointer, focus or ← → (not on load, scroll or touch)
   const lastKey = useRef(0);
@@ -81,6 +117,40 @@ export function Toolbar() {
             </Link>
           );
         })}
+
+        <div className="tb-links" ref={linksRef} data-open={linksOpen || undefined}>
+          <div className="tb-pop" inert={!linksOpen}>
+            <a className="tb-item tb-pop-item" href={site.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
+              style={{ "--i": 1 } as React.CSSProperties}>
+              <span className="tb-icon tb-icon-sm" style={{ "--icon": "url(/icons/toolbar/linkedin.svg)" } as React.CSSProperties} />
+            </a>
+            <a className="tb-item tb-pop-item" href={site.cv} target="_blank" rel="noopener noreferrer" aria-label="CV"
+              style={{ "--i": 0 } as React.CSSProperties}>
+              <span className="tb-cv" aria-hidden="true" />
+            </a>
+          </div>
+          <button
+            type="button"
+            className={`tb-item tb-links-btn${linksOpen ? " is-open" : ""}${hovered === "links" ? " is-hover" : ""}`}
+            aria-label="Links"
+            aria-expanded={linksOpen}
+            onClick={() => setLinksOpen((o) => !o)}
+            onPointerEnter={(e) => { if (e.pointerType === "mouse") setHovered("links"); }}
+            onFocus={(e) => { if (e.currentTarget.matches(":focus-visible")) setHovered("links"); }}
+            onBlur={() => setHovered(null)}
+          >
+            <span className="tb-icon tb-icon-link" style={{ "--icon": "url(/icons/toolbar/link.svg)" } as React.CSSProperties} />
+            <AnimatePresence>
+              {hovered === "links" && !linksOpen && (
+                <motion.span key="tip" className="tb-tooltip" role="tooltip"
+                  initial={{ opacity: 0, y: 4, x: "-50%" }} animate={{ opacity: 1, y: 0, x: "-50%" }} exit={{ opacity: 0, y: 4, x: "-50%" }}
+                  transition={{ duration: 0.15 }}>
+                  Links
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+        </div>
       </nav>
     </div>
   );

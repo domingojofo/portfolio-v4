@@ -10,6 +10,7 @@ const easeOutExpo = "cubic-bezier(.22,1,.36,1)";
 // Parallax (all screen sizes): as you scroll, the intro copy drifts down the screen while the project cards'
 // cards rise over it. 0.3 = it moves down 0.3px for every 1px scrolled.
 const BIO_DRIFT = 0.3;
+const TITLE_LAG = 0.15;   // share of the scroll the headline holds back (a gentle parallax)
 
 // Public Sans, with the two italic words in Gelica (Light, then ExtraLight)
 const HEADLINE: RevealLine[] = [
@@ -96,12 +97,15 @@ export function Hero() {
   // Parallax: move the copy's layer down by the scroll (so it stays put) plus the drift
   useEffect(() => {
     const layer = heroRef.current!.querySelector<HTMLElement>(".bio-drift")!;
+    const title = heroRef.current!.querySelector<HTMLElement>(".hero-title")!;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     let raf = 0;
     const apply = () => {
       raf = 0;
       const on = !reduce.matches;
       const y = Math.min(scrollY, innerHeight);
+      // The headline lags the scroll a little (it moves up at 85% of the scroll's speed)
+      title.style.translate = on && y > 0 ? `0 ${y * TITLE_LAG}px` : "";
       layer.style.transform = on && y > 0 ? `translate3d(0, ${y * (1 + BIO_DRIFT)}px, 0)` : "";
       // Fade it out as the project cards rise to it, so it never sits on top of them; hidden once
       // the deck fills the screen, so it doesn't drift on into the closing section

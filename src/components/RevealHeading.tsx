@@ -9,8 +9,8 @@ import { lineText, RevealWords, type RevealLine } from "./RevealWords";
 // It renders with .rv-pending so the words start parked out of sight — no flash of the finished
 // text before the effect runs. Reduced motion (and no JS, see layout.tsx) shows it as is.
 export function RevealHeading({
-  as: Tag = "h1", lines, options, onView = false, ...rest
-}: { as?: "h1" | "h2" | "p"; lines: RevealLine[]; options?: RevealOptions; onView?: boolean } & React.HTMLAttributes<HTMLHeadingElement>) {
+  as: Tag = "h1", lines, options, onView = false, viewThreshold = 0.35, ...rest
+}: { as?: "h1" | "h2" | "p"; lines: RevealLine[]; options?: RevealOptions; onView?: boolean; viewThreshold?: number } & React.HTMLAttributes<HTMLHeadingElement>) {
   const ref = useRef<HTMLHeadingElement>(null);
 
   useLayoutEffect(() => {
@@ -32,7 +32,7 @@ export function RevealHeading({
       if (!e.isIntersecting) return;
       io.disconnect();
       play();
-    }, { threshold: 0.35 });
+    }, { threshold: viewThreshold });
     io.observe(el);
     return () => { io.disconnect(); r?.cancel(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- plays once per mount

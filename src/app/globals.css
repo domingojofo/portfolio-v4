@@ -154,24 +154,31 @@ html.fonts-loading .deck-cards { opacity: 0; }                               /* 
      scales straight down to a phone's width */
   width: var(--card-w, min(500px, 70vw, calc((100svh - 300px) * .9)));   /* ProjectCards sizes the group to 95vh */
   transform-origin: 50% 0;
-  background: var(--stage);
-  border-radius: 4px;
-  box-shadow: 0 -1px 0 rgb(15 33 50 / .03), 0 6px 18px rgb(15 33 50 / .045);   /* subtle */
+  border-radius: 10px;
   pointer-events: auto;
   will-change: transform;
 }
-.deck-card { cursor: default; }
-.deck-link[role="button"] { cursor: pointer; }   /* a card peeking out behind comes to the front */
+.deck-card { cursor: pointer; }
 /* Switching (ProjectCards): cards glide to their new place in the stack */
 .deck-cards.is-switching .deck-card { transition: transform .6s cubic-bezier(.22, 1, .36, 1); }   /* cards moving forward: ease-out (leaving ones get an ease-in, inline) */
 /* Pixel dissolve (src/lib/pixelCard.ts): the canvas stands in for the card while it runs */
 .deck-card.px-active { background: transparent; box-shadow: none; pointer-events: none; }
 .deck-card.px-active > .deck-link { visibility: hidden; }
 .px-canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; pointer-events: none; }
-.deck-link { display: block; padding: clamp(8px, .8vw, 12px); color: #0F2132; text-decoration: none; }
+.deck-link {
+  display: block; color: #0F2132; text-decoration: none; border-radius: inherit;
+  /* leans toward the cursor (ProjectCards sets --tilt-x / --tilt-y, -1…1) */
+  transform: perspective(1400px) rotateY(calc(var(--tilt-x, 0) * -7deg)) rotateX(calc(var(--tilt-y, 0) * 6deg));
+  transform-origin: 50% 50%;
+}
 .deck-link:focus-visible { outline: 2px solid #0F2132; outline-offset: 4px; }
 .deck[data-sized] .deck-img { aspect-ratio: auto; height: var(--img-h); }
-.deck-img { display: block; aspect-ratio: 5 / 4; border-radius: 3px; overflow: hidden; background: #ECECE8; }
+.deck-img { position: relative; display: block; aspect-ratio: 5 / 4; border-radius: 10px; overflow: hidden; background: #ECECE8; }
+/* Glass edge: a 2px light stroke just inside the card, with a brighter top */
+.deck-img::after {
+  content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / .28), inset 0 1px 0 2px rgb(255 255 255 / .18);
+}
 .deck-img :is(img, video) { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .6s cubic-bezier(.22, 1, .36, 1); }
 .deck-link:hover .deck-img :is(img, video) { scale: 1.02; }
 
@@ -224,7 +231,7 @@ html.fonts-loading .deck-bar { visibility: hidden; }
   position: relative;
   border: 0; padding: 6px 6px 10px;
   background: none;
-  font: inherit; font-size: 26px; font-weight: 400; line-height: 1;
+  font: inherit; font-size: 26px; font-weight: 700; line-height: 1;   /* Public Sans Bold */
   font-variant-numeric: tabular-nums; letter-spacing: -.01em;
   color: rgb(15 33 50 / .3);
   cursor: pointer;
@@ -247,19 +254,19 @@ html.fonts-loading .deck-bar { visibility: hidden; }
 }
 .deck-timer[data-run] { animation-play-state: running; }
 @keyframes deck-timer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* View project (Figma 214:114698): navy key, light-blue edge (thicker at the bottom), soft inner top light */
 .deck-open {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 12px;
+  display: flex; align-items: center;
+  padding: 12px 16px;
   border-radius: 6px;
-  border: 1px solid rgb(29 52 74 / .3); border-bottom-width: 2px;
-  background: #1D344A; color: var(--stage);
-  box-shadow: 0 1px 2px 0 #fff inset, 0 1px 2px 0 rgb(0 0 0 / .2);
-  font-size: 14px; line-height: 20px; text-decoration: none; white-space: nowrap;
-  transition: background-color .2s ease;
+  border: 1px solid rgb(126 182 250 / .3); border-bottom-width: 2px;
+  background: #1D344A; color: #D9D9D2;
+  box-shadow: inset 0 1px 1px 0 rgb(255 255 255 / .2), 0 1px 2px 0 rgb(0 0 0 / .2);
+  font-weight: 600; font-size: 16px; line-height: 20px; text-decoration: none; white-space: nowrap;
+  transition: background-color .2s ease, translate .15s ease, border-bottom-width .15s ease;
 }
-.deck-open:hover { background: #0F2132; }
-.deck-open svg { transition: translate .25s cubic-bezier(.22, 1, .36, 1); }
-.deck-open:hover svg { translate: 2px 0; }
+.deck-open:hover { background: #22405b; }
+.deck-open:active { translate: 0 1px; border-bottom-width: 1px; }
 
 /* Wide screens: three columns — the project | the stack | the counter and "View project" — each side
    kept to the space beside the cards, 8px from them (ProjectCards, COLS_MIN), at the bottom of the
@@ -270,7 +277,7 @@ html.fonts-loading .deck-bar { visibility: hidden; }
     --side: calc((100vw - var(--card-w, 560px)) / 2 - 40px - 8px);
     flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 0;
   }
-  .deck-about { --lines: 4; width: min(560px, var(--side)); max-width: none; }   /* never into the middle column */
+  .deck-about { --lines: 4; width: min(560px, var(--side)); max-width: none; justify-content: flex-start; }   /* never into the middle column; the company line at its top (the front card ends level with it) */
   .deck-controls { width: var(--side); flex-wrap: wrap; justify-content: flex-end; gap: 4px 28px; }   /* right-aligned; narrow: "View project" wraps under */
 }
 .deck-open:focus-visible { outline: 2px solid #0F2132; outline-offset: 3px; }
@@ -306,7 +313,7 @@ html.fonts-loading .deck-bar { visibility: hidden; }
 .deck-sat-2 { left: 6vw;  top: calc(var(--lift) + 42svh); animation-delay: .15s; }
 .deck-sat-3 { right: 9vw; top: calc(var(--lift) + 18svh); animation-delay: .3s; }
 .deck-sat-4 { right: 6vw; top: calc(var(--lift) + 44svh); animation-delay: .45s; }
-.deck-sats { transition: opacity .4s ease; }
+.deck-sats { display: none; }   /* the floating thumbnails are off for now */
 @media (max-height: 860px) { .deck-sat-2, .deck-sat-4 { display: none; } }
 @keyframes sat-in { from { opacity: 0; transform: translateY(10px); } }
 
@@ -314,13 +321,23 @@ html.fonts-loading .deck-bar { visibility: hidden; }
    Highlights ticker (Highlights.tsx) — a dark band along the bottom of the project cards' screen
    (the work above it), peeking up under the work; it scrolls away with it
    ========================================================================= */
+/* It follows the deck's stage in the section, its natural place the section's very end. Sticky
+   with a negative bottom, it holds half out of the screen while the deck pins; as the deck ends it
+   scrolls up whole, and the footer comes up from under it. Shown once the deck is reached. */
+html { --tk-h: calc(80px + clamp(16px, 2.4svh, 22px)); }   /* the highlights ticker's height */
 .marquee {
-  position: absolute; left: 0; right: 0; bottom: 0; z-index: 11;   /* over cards sliding out */
+  position: sticky; bottom: calc(var(--tk-h) / -2); z-index: 11;   /* over cards sliding out */
+  margin-top: calc(var(--pause) - var(--tk-h) / 2);
+  margin-bottom: calc(var(--tk-h) / -2);   /* half below the section: it rises only as the stage does */
   display: flex; align-items: center;
-  padding: 24px 0;
+  height: var(--tk-h); box-sizing: border-box;
+  padding: 40px 0;
   overflow: hidden;
   background: #0F2132;
+  pointer-events: auto;
+  transition: opacity .4s ease;
 }
+html:not(.deck-reached) .marquee { opacity: 0; }
 .marquee-track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
 .marquee-group { display: flex; margin: 0; padding: 0; list-style: none; }
 .marquee-group li { display: flex; align-items: center; gap: 24px; padding-left: 24px; }
@@ -338,35 +355,43 @@ html.fonts-loading .deck-bar { visibility: hidden; }
    Closing section (Closing.tsx) — Figma "Hero — Final frame (1440)": the giant words, the marble
    hand and the cursor hand (CursorHand.tsx). .closing-art is the frame (1440 × 1094, the ticker
    above it left out): --u is one frame px, scaled to the width — or, where that would be too tall,
-   to fit the whole footer in 95svh (a little of the ticker shows above it). Then the frame is
-   narrower than the screen: "Relentlessly" and the marble hand keep to the right edge,
-   "Collaborative" to the left, and the cursor rows run on to the left edge.
+   to fit the whole footer in 95svh (a little of the ticker shows above it). The hands meet at the
+   screen's centre: the marble fingertip (frame 678, 510) sits there, the hand 1.2× the frame's
+   size (and always long enough to run off the right edge); the cursor rows run on to the left
+   edge. The words are 1.3× the frame's: "Relentlessly" to the right, "Collaborative" resting on
+   the bottom.
    ========================================================================= */
 .closing {
-  --u: min(100vw / 1440, (95svh - var(--dock) - 24px) / 1094);
-  position: relative; padding: 0 0 calc(var(--dock) + 24px); color: #1D344A; overflow-x: clip;
+  --u: min(100vw / 1440, (95svh - var(--tk-h) / 2) / 1094);
+  position: relative; color: #1D344A; overflow: clip;
+  padding-top: calc(var(--tk-h) / 2);   /* the ticker's lower half hangs over the footer's top */   /* the nav steps away here: "Collaborative" sits on the bottom edge */
 }
-.closing-art { position: relative; height: calc(1094 * var(--u)); }
+.closing-art { position: relative; height: calc(1094 * var(--u)); will-change: transform; }
 
 /* Gelica ExtraLight 202.8px, −4% tracking: "Relentlessly" top right, "Collaborative" bottom left */
 .giant {
   position: absolute; inset: 0; z-index: 1; margin: 0;
   font-family: var(--serif); font-weight: 200;
-  font-size: calc(202.8 * var(--u)); line-height: 1.2; letter-spacing: -0.04em;
+  font-size: calc(.975 * 202.8 * var(--u)); line-height: 1; letter-spacing: -0.04em;   /* 75% of the earlier 1.3× */
   color: #1D344A;
   pointer-events: none;
 }
 .giant > span { position: absolute; white-space: nowrap; }
 .giant br { display: none; }
-.giant > span:first-child { left: calc(100% - 1020 * var(--u)); top: calc(74 * var(--u)); }
-.giant > span:last-child { left: calc(17 * var(--u)); top: calc(840 * var(--u)); }
+.giant > span:first-child { right: calc(28 * var(--u)); top: calc(40 * var(--u)); }
+.giant > span:last-child { left: calc(17 * var(--u)); bottom: calc(14 * var(--u)); }   /* just clear of the bottom edge */
 .giant .rv-scr { color: rgb(15 33 50 / .35); }
+@media (max-width: 1023px) { .giant { font-size: calc(.9 * 202.8 * var(--u)); } }
 
 /* The marble hand, turned 15° as in the frame; it comes in out of a blur (Linear-style) with the cursors */
 .closing-hand {
+  /* 1.5× about the fingertip, or wider if needed so the forearm's cut end runs well past the right
+     edge (its box runs 1.0908× its width beyond the fingertip; the fingertip sits .0831 / .1311 of it
+     in from its corner) */
+  --hw: max(1440 * var(--u), (50vw + 220px) * 1.0908);
   position: absolute; z-index: 2;
-  left: calc(100% - 841.77 * var(--u)); top: calc(384.19 * var(--u));
-  width: calc(959.93 * var(--u)); height: auto;
+  left: calc(50% - .0831 * var(--hw)); top: calc(510 * var(--u) - .1311 * var(--hw));
+  width: var(--hw); height: auto;
   rotate: 15deg;
   pointer-events: none;
   transition: opacity 1.2s ease, filter 1.4s cubic-bezier(.22, 1, .36, 1), translate 1.4s cubic-bezier(.22, 1, .36, 1);
@@ -545,10 +570,13 @@ html[data-intro="playing"] .hero:not(.is-running) .hero-title .rv-in,
 .project-meta { display: flex; gap: 24px; margin: 16px 0 32px; font-size: 15px; }
 .project > :is(img, video) { display: block; width: 100%; height: auto; border-radius: 4px; }   /* the cover only — not the demo panels' images */
 .project > video { aspect-ratio: 16 / 9; object-fit: cover; background: #0b0b0b; }   /* a square loop, cropped to a wide hero */
-.project > h1 + :is(img, video, .cover-gradient) { margin-top: 32px; }   /* no role / year line yet (OAMO) */
+.project > h1 + :is(img, video, .cover-gradient, .cover-scene) { margin-top: 32px; }   /* no role / year line yet (OAMO) */
 /* GradientField cover: fills the card's image box; a wide hero in the modal */
 .cover-gradient { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; background: linear-gradient(90deg, #c64a24, #ef8a4b, #f3b8a0, #c55a8b, #5f3a9c); }
 .project > .cover-gradient { height: auto; aspect-ratio: 16 / 9; border-radius: 4px; }
+.cover-scene { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; }
+.project > .cover-scene { height: auto; aspect-ratio: 16 / 9; border-radius: 4px; }
+@media (max-width: 640px) { .project > .cover-scene { aspect-ratio: 4 / 5; } }   /* room for the phone */
 .project > p { margin-top: 32px; max-width: 720px; font-size: 17px; line-height: 1.6; }
 /* Sections inside a project (Anchorage, Chipp): a Gelica subhead over its panels */
 .project-section { margin-top: 72px; }
@@ -786,8 +814,16 @@ html[data-intro="playing"] .nav-inner { opacity: 0; pointer-events: none; }
 /* Top bar text: Public Sans Light, all caps */
 .logo-name, .locale { font-family: var(--sans); font-weight: 300; font-size: 15px; text-transform: uppercase; letter-spacing: .02em; color: #1D344A; }
 .logo:focus-visible, .dock a:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
-.locale { display: flex; gap: 6px; }
-.locale { align-items: center; }
+/* Brooklyn, the skyline and the time: one style with a difference blend — #8B939A on the paper,
+   shifting over whatever passes under it — fixed over the top bar's right end */
+.locale {
+  position: fixed; z-index: 106; top: 0; right: 40px; height: 60px;
+  display: flex; align-items: center; gap: 6px; margin: 0;
+  color: #4E4638; mix-blend-mode: difference;   /* on the paper (#D9D9D2) this reads as #8B939A */
+  pointer-events: none;
+  transition: opacity .5s ease .15s;
+}
+html[data-intro="playing"] .locale { opacity: 0; }
 /* NYC skyline mark between the place and the time (masked, so it takes the text colour) */
 .locale-icon {
   width: 13.43px; height: 16.67px;
@@ -796,7 +832,7 @@ html[data-intro="playing"] .nav-inner { opacity: 0; pointer-events: none; }
   -webkit-mask: url(/icons/nyc.svg) center / contain no-repeat;
           mask: url(/icons/nyc.svg) center / contain no-repeat;
 }
-.clock { display: inline-block; min-width: 11ch; font-variant-numeric: tabular-nums; color: #8B939A; }
+.clock { display: inline-block; min-width: 11ch; font-variant-numeric: tabular-nums; }
 
 /* Bottom dock (word-nav mode, desktop): page links centred above the blur. On scroll they drop
    away and the Menu button rises into place. */
@@ -833,17 +869,6 @@ html[data-intro="playing"] .dock > * { pointer-events: none; }
 .keycap:hover { transform: translateY(1px); }
 .keycap:hover img { filter: brightness(.85); }
 .keycap:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
-
-/* LinkedIn + CV, bottom right, 20px off the bottom edge */
-.social-corner {
-  position: fixed;
-  right: 40px;
-  bottom: 20px;
-  z-index: 120;
-  gap: 12px;
-  transition: opacity .5s ease .15s;
-}
-html[data-intro="playing"] .social-corner { opacity: 0; pointer-events: none; }
 
 /* Menu button (Figma "Menu ⌘K"): a navy keycap. It rises into the links' place once you scroll;
    on hover it presses down — the thick bottom edge thins as the key moves 2px. */
@@ -1030,18 +1055,19 @@ html[data-intro="playing"] .mobile-bar { opacity: 0; pointer-events: none; }
   display: flex;
   align-items: center;
   gap: 16px;
-  transition: opacity .5s ease .15s;
+  transition: opacity .5s ease .15s, translate .55s cubic-bezier(.22, 1, .36, 1);
 }
 
 html[data-intro="playing"] .tb { opacity: 0; pointer-events: none; }
-/* While the project cards fill the screen (ProjectCards), the bottom nav and LinkedIn/CV fade away;
-   they come back once you scroll on. The blur strip behind them shrinks to the highlights ticker's
-   height, so the ticker peeks up under it and the project text above stays sharp. */
-html.deck-focus :is(.tb, .dock, .social-corner, .mobile-bar) {
-  opacity: 0; visibility: hidden; pointer-events: none;
-  transition: opacity .35s ease, visibility 0s .35s;
-}
-html.deck-focus .edge-blur--bottom { --edge-h: calc(48px + clamp(16px, 2.4svh, 22px)); }   /* the ticker's height */
+/* The bottom nav slides down out of the way: on Hey before the first scroll and at the footer
+   (Toolbar, html.nav-away), and while the project cards fill the screen (ProjectCards,
+   html.deck-focus); it slides back up after. The blur strip behind it shrinks to the highlights
+   ticker's peek, so the ticker shows under it and the project text above stays sharp. */
+html:is(.nav-away, .deck-focus) .tb { translate: -50% calc(100% + 40px); opacity: 0; pointer-events: none; transition: translate .45s cubic-bezier(.55, 0, .75, .3), opacity .3s ease .1s; }
+html:is(.nav-away, .deck-focus) :is(.dock, .mobile-bar) { translate: 0 calc(100% + 40px); opacity: 0; pointer-events: none; transition: translate .45s cubic-bezier(.55, 0, .75, .3), opacity .3s ease .1s; }
+.dock, .mobile-bar { transition: opacity .5s ease .15s, translate .55s cubic-bezier(.22, 1, .36, 1); }
+html.nav-away .edge-blur--bottom { --edge-h: 0px; }   /* no nav to back: nothing blurs the footer's bottom edge */
+html.deck-focus .edge-blur--bottom { --edge-h: calc((80px + clamp(16px, 2.4svh, 22px)) / 2); }   /* the ticker's peek */
 
 /* Which nav shows: the icon toolbar by default (html.nav-toolbar); the word nav with ?nav=words */
 html:not(.nav-toolbar) .tb { display: none; }
@@ -1052,8 +1078,6 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
 @media (max-width: 1023px) {
   html.nav-toolbar .mobile-bar { display: none; }
   .tb { bottom: max(6px, calc(2vh - 12px)); }
-  html:not(.nav-toolbar) .social-corner { display: none; }   /* the word-nav mobile bar has its own */
-  .social-corner { right: 16px; bottom: calc(max(6px, 2vh - 12px) + 50px + 18px); height: auto; }   /* above the 1.25× toolbar */
   .logo-name, .locale { font-size: 13px; }   /* name and location stay the same size */
 
   /* 1.25× on touch screens */
@@ -1127,6 +1151,49 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
 }
 .tb-item:active { transform: translateY(0); transition-duration: .08s; }
 
+/* Links (the bar's right end): LinkedIn and the CV slide up above it, one after the other */
+.tb-links { position: relative; }
+.tb-links-btn { border: 0; padding: 0; font: inherit; }
+.tb-icon-link { width: 17px; height: 17px; -webkit-mask-size: 17px; mask-size: 17px; }
+.tb-links-btn.is-open { color: #1D344A; background: #E6E6E0; box-shadow: inset 0 1px 2px rgb(13 39 65 / .18); transform: translateY(0); }
+.tb-pop {
+  position: absolute; right: 0; bottom: calc(100% + 10px);
+  display: flex; flex-direction: column; gap: 4px;
+  pointer-events: none;
+}
+.tb-pop-item {
+  box-shadow: 0 1px 2px rgb(0 0 0 / .2), inset 0 1px 1px rgb(255 255 255 / .19);
+  opacity: 0; translate: 0 14px; scale: .92;
+  transition: opacity .2s ease, translate .3s cubic-bezier(.55, 0, .75, .3), scale .3s ease, transform .2s cubic-bezier(.22, 1, .36, 1), background-color .2s ease;
+  transition-delay: calc(var(--i) * 30ms);
+}
+.tb-links[data-open] .tb-pop { pointer-events: auto; }
+.tb-links[data-open] .tb-pop-item {
+  opacity: 1; translate: 0 0; scale: 1;
+  transition: opacity .25s ease, translate .45s cubic-bezier(.22, 1, .36, 1), scale .45s cubic-bezier(.22, 1, .36, 1), transform .2s cubic-bezier(.22, 1, .36, 1), background-color .2s ease;
+  transition-delay: calc((1 - var(--i)) * 45ms);
+}
+.tb-pop-item:hover { transform: translateY(-2px); background: #E6E6E0; color: #1D344A; }
+.tb-pop-item:active { transform: translateY(0) scale(.96); transition-duration: .08s; }
+.tb-pop-item:focus-visible, .tb-links-btn:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; }
+.tb-icon-sm { width: 16px; height: 16px; -webkit-mask-size: 16px; mask-size: 16px; }
+/* The CV tile: a page outline with "CV" set in it (both take the tile's colour) */
+.tb-cv { position: relative; display: block; width: 12.8px; height: 16px; }
+.tb-cv::before {
+  content: ""; position: absolute; inset: 0; background: currentColor;
+  -webkit-mask: url(/icons/toolbar/cv-doc.svg) center / contain no-repeat; mask: url(/icons/toolbar/cv-doc.svg) center / contain no-repeat;
+}
+.tb-cv::after {
+  content: "CV"; position: absolute; left: 0; right: 0; bottom: 3px;
+  text-align: center; font-family: var(--sans); font-weight: 600; font-size: 5.5px; line-height: 1; letter-spacing: .02em;
+}
+@media (max-width: 1023px) {
+  html.nav-toolbar .tb-icon-link { width: 21px; height: 21px; -webkit-mask-size: 21px; mask-size: 21px; }
+  html.nav-toolbar .tb-icon-sm { width: 20px; height: 20px; -webkit-mask-size: 20px; mask-size: 20px; }
+  html.nav-toolbar .tb-cv { width: 16px; height: 20px; }
+  html.nav-toolbar .tb-cv::after { font-size: 7px; bottom: 3.6px; }
+}
+
 .tb-tooltip {
   position: absolute;
   left: 50%;
@@ -1164,7 +1231,8 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
   /* Phones: the project above, the counter and "View project" in a row under it */
   .deck { --pause: 50svh; }
   .deck-bar { left: 16px; right: 16px; gap: 12px; }
-  .deck-about { --lines: 5; }
+  .deck-about { justify-content: flex-start; }   /* the text right under the card; spare lines fall below it */
+  .deck-about { --lines: 4; }
   .deck-count { margin-left: -6px; }
   .deck-count button { font-size: 22px; }
   .deck-sats { display: none; }
@@ -1175,6 +1243,7 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
   /* Top bar is just the logo; pages + LinkedIn/CV live in the bottom bar */
   .edge-blur--top { --edge-h: 72px; }
   .nav-inner { left: 16px; right: 16px; height: 46px; }
+  .locale { right: 16px; height: 46px; }
   .dock { display: none; }
   .mobile-bar { display: flex; }
 

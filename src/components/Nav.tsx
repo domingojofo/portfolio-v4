@@ -8,7 +8,6 @@ import { INTRO_KEY } from "@/lib/intro";
 import { pageIndex, pages } from "@/lib/pages";
 import { useMenu } from "./CommandMenu";
 import { EdgeFx } from "./EdgeBlur";
-import { SocialLinks } from "./SocialLinks";
 
 // Step to the previous / next page in nav order (← / → keys)
 function usePageStep() {
@@ -152,9 +151,9 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const STAGGER = 0.05;
 
 // Top: the blur strip with the logo + name (→ Hey, replays the intro) on the left; location and
-// live time on the right. Stays put while scrolling.
-// Bottom: the ← → hint on the left, the floating icon toolbar centred (Toolbar.tsx), LinkedIn/CV
-// on the right.
+// live time on the right (blended by difference, so it reads on light and dark). Stays put while scrolling.
+// Bottom: the ← → hint on the left, the floating icon toolbar centred (Toolbar.tsx; LinkedIn and the
+// CV are under its links button).
 // Word-nav mode (?nav=words): page links centred; once you scroll they drop away one after
 // another and the Menu button (⌘K) rises into their place. On mobile/iPad the bottom bar
 // (MobileBar) takes over in that mode.
@@ -177,15 +176,15 @@ export function Nav() {
             <Logo />
             <span className="logo-name">Jofo Domingo</span>
           </Link>
-          <p className="locale">
-            <span>Brooklyn</span>
-            <span className="locale-icon" aria-hidden="true" />
-            <NycClock />
-          </p>
         </div>
       </header>
 
-      <SocialLinks className="social-corner" />
+      {/* Outside the blur strip, so its difference blend works against the page itself */}
+      <p className="locale">
+        <span>Brooklyn</span>
+        <span className="locale-icon" aria-hidden="true" />
+        <NycClock />
+      </p>
 
       <nav className="dock" aria-label="Main">
         <motion.div
