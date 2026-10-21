@@ -32,7 +32,7 @@ export function Polaroid() {
   return (
     <div className="ab-polaroid">
       <div className="ab-polaroid-card" ref={ref}>
-        <Image src="/images/about/polaroid.jpg" width={900} height={675} sizes="173px" alt="Jofo smiling by a river at sunset" priority />
+        <Image src="/images/about/polaroid-upright.jpg" width={675} height={900} sizes="173px" alt="Jofo smiling by a river at sunset" priority />
       </div>
     </div>
   );
