@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { getWarp, makeBend, onWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/warp";
 
@@ -8,8 +9,11 @@ import { getWarp, makeBend, onWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/w
 //    toward you, so the rows grow and spread apart toward the bottom edge.
 //    Scrolling unrolls it back to the plain grid.
 //  - Hover (mouse only): dots near the cursor darken and grow, with a short fading trail.
-// It only draws when something changes (pointer, trail, scroll warp, resize). The CSS dots on
-// .dot-grid are the no-JS fallback and are switched off once the canvas is live.
+//  - Board (pages with a [data-board="gap"] element, e.g. About): the grid is pinned to the page
+//    instead of the screen — it scrolls with the content, its dots lined up on that element's
+//    top-left corner every `gap` px — so the content looks laid out on it.
+// It only draws when something changes (pointer, trail, scroll warp, resize, a page change). The
+// CSS dots on .dot-grid are the no-JS fallback and are switched off once the canvas is live.
 
 const GAP = 28;          // px between dots (must match --dot-gap in globals.css)
 const RADIUS = 150;      // px around the cursor that light up
@@ -28,6 +32,13 @@ const HIDE = 0.12;       // …and fade out over this share just above the closi
 
 export function DotGrid() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const kickRef = useRef<() => void>(() => {});
+  const pathname = usePathname();
+  // A new page: redraw once it has laid out (the last frame was the previous page's)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => kickRef.current()));
+    return () => cancelAnimationFrame(id);
+  }, [pathname]);
 
   useEffect(() => {
     const canvas = ref.current!;
@@ -68,6 +79,42 @@ export function DotGrid() {
       const hideAt = closing ? closing.getBoundingClientRect().top : Infinity, hideLen = H * HIDE;
       for (let b = 0; b < BUCKETS; b++) paths[b] = new Path2D();
       let active = false;
+
+      // Board: a flat grid pinned to the page, aligned on the board element's corner
+      const board = document.querySelector<HTMLElement>("[data-board]");
+      if (board) {
+        const gap = Number(board.dataset.board) || GAP, o = board.getBoundingClientRect();
+        const x0 = o.left - Math.ceil((o.left + gap) / gap) * gap, y0 = o.top - Math.ceil((o.top + gap) / gap) * gap;
+        const bc = Math.ceil((W - x0) / gap) + 1, br = Math.ceil((H - y0) / gap) + 1;
+        if (heat.length < bc * br) heat = new Float32Array(bc * br);
+        for (let r = 0; r < br; r++) {
+          const y = y0 + r * gap;
+          if (y < -gap || y > H + gap) continue;
+          for (let c = 0; c < bc; c++) {
+            const x = x0 + c * gap, i = r * bc + c;
+            let h = heat[i] * decay;
+            if (hover) {
+              const dist = Math.hypot(x - mx, y - my);
+              if (dist < RADIUS) h = Math.max(h, Math.pow(1 - dist / RADIUS, 1.6));
+            }
+            heat[i] = h < 0.01 ? 0 : h;
+            if (heat[i]) active = true;
+            const rad = BASE + (PEAK - BASE) * heat[i];
+            const alpha = Math.min(0.67, ALPHA + heat[i] * 0.55);
+            const b = Math.min(BUCKETS - 1, Math.round((alpha / 0.67) * (BUCKETS - 1)));
+            paths[b].moveTo(x + rad, y);
+            paths[b].arc(x, y, rad, 0, Math.PI * 2);
+          }
+        }
+        ctx.clearRect(0, 0, W, H);
+        for (let b = 0; b < BUCKETS; b++) {
+          ctx.fillStyle = `rgba(${INK}, ${((b / (BUCKETS - 1)) * 0.67).toFixed(3)})`;
+          ctx.fill(paths[b]);
+        }
+        if (active) kick();
+        else last = 0;
+        return;
+      }
 
       // Rows run top to bottom. Above the hinge they're the flat page; a dot u px below it lands
       // on the bent surface (src/lib/warp.ts) and projects toward the hinge's vanishing point.
@@ -117,6 +164,7 @@ export function DotGrid() {
       else last = 0;
     };
     const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+    kickRef.current = kick;
 
     const onMove = (e: PointerEvent) => { mx = e.clientX; my = e.clientY; kick(); };
     const onLeave = () => { mx = my = -1e4; kick(); };

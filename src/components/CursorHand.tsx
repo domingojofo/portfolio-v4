@@ -47,6 +47,7 @@ export function CursorHand() {
     let cursors: Cursor[] = [];
     const box = { x: 0, y: 0, r: 0, b: 0 };
     const build = (left: number) => {
+      if (!Number.isFinite(left)) return;
       const pts = SVG.slice();
       // Carry each straight row (heading 0) on to the left, one step at a time
       const rows = new Map<number, number>();
@@ -104,6 +105,9 @@ export function CursorHand() {
     };
 
     const size = () => {
+      // Leaving the page detaches the section and the observer reports it at 0×0. A zero scale would
+      // make build()'s reach infinite and its row loop never end (the page froze on navigation).
+      if (!section.isConnected || !section.clientWidth || !section.clientHeight) return;
       s = section.clientHeight / H;
       ox = section.clientWidth / 2 - MEET * s;
       build(ox / s);
@@ -127,6 +131,7 @@ export function CursorHand() {
     };
 
     const draw = (now: number) => {
+      if (!shadow) return;   // not sized yet
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const sw = shadow.width, bw = body.width;

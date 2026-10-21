@@ -17,12 +17,15 @@ export function RevealHeading({
     const el = ref.current!;
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       el.classList.remove("rv-pending");
+      el.dataset.revealed = "";
       return;
     }
     let r: ReturnType<typeof reveal> | null = null;
     const play = () => {
       r = reveal(el, options);
       el.classList.remove("rv-pending");   // reveal() has parked each word inline by now
+      // Text waiting on the heading (LineRise) starts once its words have landed
+      r.finished.then(() => { el.dataset.revealed = ""; el.dispatchEvent(new Event("rv:done")); });
     };
     if (!onView) {
       play();

@@ -1337,3 +1337,192 @@ html[data-loader="on"] .preloader {
   html[data-loader="on"] .preloader { font-size: 16px; }
   .pl-line { left: calc(16px + var(--l) * .4%); }   /* same zigzag, compressed to fit a phone */
 }
+
+/* =========================================================================
+   About (app/about/page.tsx) — Figma 580:30465. Laid out on a board of dots (30px, pinned to the
+   page; DotGrid [data-board], BoardSnap). Every block starts on the same left edge — a 480px column's,
+   centred (.ab-start) — and text stays 480px wide; wider blocks run on to the right, the Ikigai mark
+   sits out in the left margin, and the photo and the talks carousel go wide.
+   ========================================================================= */
+.ab {
+  --navy: #1D344A; --dim: rgb(29 52 74 / .5); --g: 30px;
+  position: relative; max-width: 1400px; margin: 0 auto; padding: 0 24px 24svh;
+  color: var(--navy); font-size: 18px; line-height: 1.5;   /* no clip here: the carousel bleeds to the screen edges */
+}
+/* LineRise: each word in its own mask, rising from just below; all at once, so lines come up whole */
+.lr-w { display: inline-block; text-indent: 0; clip-path: inset(-0.15em -0.3em -0.3em -0.3em); }
+.lr-in { display: inline-block; translate: 0 105%; transition: translate .9s cubic-bezier(.22, 1, .36, 1); }
+.lr[data-in] .lr-in { translate: 0 0; }
+.ab em { font-style: normal; }
+.ab :where(p) { margin: 0; }
+.ab-origin { position: absolute; left: calc(50% - 240px); top: 0; width: 1px; height: 1px; }   /* the board's corner: on the column's left edge */
+.ab-col { width: min(480px, 100%); margin-left: auto; margin-right: auto; }
+.ab-start { margin-left: max(0px, calc(50% - 240px)); }
+.ab-stack > * + * { margin-top: var(--g); }
+.ab-text { max-width: 480px; }
+.ab-title { margin: 0; font-family: var(--sans); font-weight: 300; font-size: 46px; line-height: 1.05; letter-spacing: -0.01em; max-width: 480px; }
+.ab-title .rv-scr { color: rgb(29 52 74 / .35); }
+.ab-gx { font-family: var(--serif); font-weight: 200; }   /* Gelica ExtraLight, upright */
+.ab-muted { color: var(--dim); }
+.ab-indent { text-indent: 150px; }   /* five dots in, as the Figma's leading spaces */
+
+/* Opening: the polaroid's top sits 40% down the screen; everything else flows on below it */
+.ab-intro { position: relative; padding-top: 40svh; padding-bottom: 18px; }
+/* Polaroid (Figma 590:32299): drops in on load; the card leans toward the pointer (Polaroid.tsx) */
+.ab-polaroid { width: 185px; margin-bottom: 30px; animation: ab-drop 1s cubic-bezier(.22, 1, .36, 1) .1s both; }
+@keyframes ab-drop { from { opacity: 0; translate: 0 -18px; rotate: -5deg; } }
+.ab-polaroid-card {
+  --px: 0; --py: 0;
+  padding: 6px; border-radius: 5px; background: #fff; box-shadow: 0 4px 22px rgb(0 0 0 / .15);
+  transform: perspective(900px) translate(calc(var(--px) * 12px), calc(var(--py) * 8px)) rotate(calc(7deg + var(--px) * 2.5deg)) rotateY(calc(var(--px) * 10deg)) rotateX(calc(var(--py) * -10deg));
+  will-change: transform;
+}
+.ab-polaroid-card img { display: block; width: 100%; height: auto; aspect-ratio: 173 / 182; object-fit: cover; border-radius: 3px; }
+.ab-intro .ab-title { max-width: 456px; }
+/* Subtle on-load rise for the copy under the headline (the headline plays the word reveal) */
+.ab-rise { margin-top: 24px; animation: ab-rise .9s cubic-bezier(.22, 1, .36, 1) .55s both; }
+.ab-rise > .ab-stats { margin-top: var(--g); }
+.ab-rise { animation: none; }   /* its text rises line by line (LineRise) */
+@keyframes ab-rise { from { opacity: 0; translate: 0 14px; } }
+
+.ab-stats { display: flex; width: max-content; max-width: 100%; gap: 160px; line-height: 1.3; }
+.ab-stat { display: grid; gap: 8px; }
+.ab-num { position: relative; display: grid; justify-items: start; font-size: 48px; line-height: 1; letter-spacing: -0.03em; }
+/* CountUp: the live number counts over a hidden copy of the final value, which holds the width */
+.ab-num > * { grid-area: 1 / 1; }
+.ab-num-ghost { visibility: hidden; }
+.ab-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.ab-photo { position: relative; aspect-ratio: 1592 / 661; border-radius: 10px; overflow: hidden; }
+.ab-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; }
+.ab-after { margin-top: 24px; }
+
+/* Ikigai: 85vh; the statement starts on the column's edge and runs right, the mark out in the left
+   margin (scaled to fit it). Phones stack them: the mark full width, the statement below. */
+.ab-ikigai-sec { min-height: 85vh; display: flex; align-items: center; margin-top: var(--g); }
+.ab-ikigai-row { position: relative; width: 100%; }
+.ab-ikigai {
+  position: absolute; right: calc(100% + 20px); top: 50%; translate: 0 -50%;
+  width: min(495px, 50vw - 240px - 20px - 24px); height: auto; overflow: visible;
+}
+/* Solid navy arrows with the soft shadow the home page's cursor hand uses (one shadow for the mark) */
+.ab-ikigai { filter: drop-shadow(0 8px 14px rgb(0 0 0 / .18)); }
+.ab-ikigai path { fill: var(--navy); transform-box: fill-box; transform-origin: center; will-change: transform, opacity; }
+.ab-ikigai-label { font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: .02em; fill: var(--navy); }
+.ab-think-wrap { position: relative; max-width: 932px; }
+.ab-think { font-family: var(--sans); font-weight: 300; font-size: 46px; line-height: 1.3; text-indent: 330px; }
+.ab-gi { font-family: var(--serif); font-weight: 300; font-style: italic !important; }   /* Gelica Light Italic */
+.ab-gxi { font-style: italic !important; }                                           /* Gelica ExtraLight Italic */
+.ab-label { position: absolute; left: 0; top: .35em; text-indent: 0; font-family: var(--serif); font-weight: 400; font-size: 18px; line-height: 1.3; text-transform: uppercase; letter-spacing: .02em; }
+.ab-dim { color: var(--dim); }
+.ab-g { font-family: var(--serif); font-weight: 300; }
+
+/* AI: the body runs at 1.3 like the Figma, its paragraphs a line apart */
+.ab-ai .ab-text { line-height: 1.3; }
+.ab-ai > .ab-text + .ab-text { margin-top: 23px; }
+
+/* Later sections */
+.ab-section { margin-top: calc(var(--g) * 4); }
+
+/* Talks carousel (TalksCarousel.tsx): tilted white prints drifting across the full width */
+.ab-carousel { margin: var(--g) calc(50% - 50vw) 0; overflow: hidden; }
+.ab-carousel-track { display: flex; gap: 40px; width: max-content; margin: 0; padding: 36px 20px; list-style: none; animation: ab-marquee 80s linear infinite; }
+.ab-carousel:hover .ab-carousel-track { animation-play-state: paused; }
+@keyframes ab-marquee { to { transform: translateX(-50%); } }
+.ab-print {
+  flex: none; width: 400px; padding: 6px; border-radius: 6px; background: #fff;
+  box-shadow: 0 10px 28px rgb(23 31 23 / .14);
+  rotate: var(--r); transition: rotate .5s cubic-bezier(.22, 1, .36, 1), translate .5s cubic-bezier(.22, 1, .36, 1), box-shadow .3s ease;
+}
+.ab-print:hover { rotate: 0deg; translate: 0 -6px; box-shadow: 0 18px 40px rgb(23 31 23 / .2); }
+.ab-print img { display: block; width: 100%; aspect-ratio: 388 / 247; object-fit: cover; border-radius: 3px; }
+
+/* Talks list (Figma 580:31195): title left, role right, a faint rule under each; 64px below the
+   text, running from the column's edge to the right of the page */
+.ab-talks { list-style: none; margin: 64px 0 0 !important; padding: 0; width: 100%; display: grid; gap: 8px; }   /* fills to the right */
+.ab-talks li { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 46px; padding: 4px 0 12px; border-bottom: 1px solid rgb(29 52 74 / .1); }
+.ab-talks li > :first-child { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.2; }
+.ab-talks li > :last-child { flex: none; max-width: 40%; font-size: 18px; line-height: 1.3; text-align: right; color: rgb(29 52 74 / .4); white-space: pre-line; }
+.ab-talks a { color: inherit; text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .35s cubic-bezier(.22, 1, .36, 1); }
+.ab-talks a:hover { background-size: 100% 1px; }
+/* Narrower: the role goes under the title */
+@media (max-width: 1279px) {
+  .ab-talks li { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .ab-talks li > :last-child { max-width: none; text-align: left; }
+}
+
+/* Section nav (AboutNav; after robwinters.github.io): ticks at the left edge, names on hover */
+.page-nav { display: none; }
+@media (min-width: 1024px) {
+  .page-nav {
+    --ease-out: cubic-bezier(.22, 1, .36, 1);
+    --tick: rgb(29 52 74 / .2); --tick-past: rgb(29 52 74 / .5); --frost: rgb(233 233 228 / .82);
+    position: fixed; z-index: 120; top: 50%; left: 12px; transform: translateY(-50%);
+    display: flex; flex-direction: column; pointer-events: none;
+  }
+  .page-nav::before {
+    content: ""; position: absolute; z-index: -1; inset: -10px -6px -10px -8px; border-radius: 12px;
+    background: var(--frost); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: 0 1px 2px rgb(0 0 0 / .05), 0 12px 32px -8px rgb(0 0 0 / .14);
+    opacity: 0; transform: scale(.96); transform-origin: left center;
+    transition: opacity .25s ease, transform .45s var(--ease-out);
+  }
+  .page-nav:hover::before, .page-nav:focus-within::before { opacity: 1; transform: none; }
+  /* At rest it blends by difference, so the ticks flip light over the photos and stay navy on the
+     paper (these colours are what reads as the usual ones on #D9D9D2); hover and the announced
+     name drop the blend for the frosted panel */
+  .page-nav:not(:hover):not(:focus-within):not(.is-announcing) { mix-blend-mode: difference; --tick: #2E2C27; --tick-past: #6E6C66; --fill: #BCA588; }
+  .page-nav a {
+    position: relative; display: grid; grid-template-columns: 28px auto; align-items: center; column-gap: 14px;
+    height: 24px; padding-right: 14px;
+    font-family: var(--sans); font-size: 13px; line-height: 20px; font-weight: 500;
+    color: rgb(29 52 74 / .6); text-decoration: none;
+    animation: page-nav-in .7s var(--ease-out) both; animation-delay: calc(300ms + var(--i) * 50ms);
+  }
+  .page-nav a::before { content: ""; position: absolute; top: 0; bottom: 0; left: -12px; width: 60px; pointer-events: auto; }
+  .page-nav:hover a, .page-nav:focus-within a { pointer-events: auto; }
+  .page-nav a:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; border-radius: 4px; }
+  .page-nav .tick { position: relative; width: 10px; height: 2px; border-radius: 1px; background: var(--tick); overflow: hidden; transition: width .5s var(--ease-out), background-color .3s ease; }
+  .page-nav .fill { position: absolute; inset: 0; background: var(--fill, #1D344A); transform-origin: left; transform: scaleX(var(--progress, 0)); opacity: 0; transition: opacity .3s ease; }
+  .page-nav a.is-past .tick { background: var(--tick-past); }
+  .page-nav a.is-active .tick { width: 28px; background: var(--tick); }
+  .page-nav a.is-active .fill { opacity: 1; }
+  .page-nav a:not(.is-active):hover .tick { width: 18px; background: rgb(29 52 74 / .6); }
+  .page-nav .pn-name {
+    margin-left: -8px; padding: 2px 8px; border-radius: 6px; white-space: nowrap;
+    opacity: 0; transform: translateX(-6px);
+    transition: opacity .2s ease, transform .4s var(--ease-out), color .2s ease, background-color .2s ease;
+  }
+  .page-nav:hover .pn-name, .page-nav:focus-within .pn-name { opacity: 1; transform: none; transition-delay: calc(var(--i) * 30ms); }
+  .page-nav.is-announcing a.is-active .pn-name { opacity: 1; transform: none; }
+  .page-nav.is-announcing:not(:hover) a.is-active .pn-name { background: var(--frost); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); }
+  .page-nav a.is-active .pn-name, .page-nav a:hover .pn-name { color: #0F2132; }
+}
+@keyframes page-nav-in { from { opacity: 0; transform: translateX(-8px); } }
+
+/* iPad + phones: one column */
+@media (max-width: 1023px) {
+  .ab { padding: 0 16px 22svh; font-size: 17px; }
+  .ab-start { margin-left: 0; }
+  .ab-title { font-size: 36px; }
+  .ab-polaroid { width: 150px; margin-bottom: 30px; }
+  .ab-stats { width: auto; flex-wrap: wrap; gap: 24px 48px; }
+  .ab-num { font-size: 38px; }
+  .ab-indent { text-indent: 90px; }
+  .ab-photo { aspect-ratio: 4 / 3; }
+  .ab-ikigai-sec { min-height: 0; display: block; margin-top: calc(var(--g) * 2); }
+  .ab-ikigai { position: static; translate: none; display: block; width: 100%; padding: 0 4%; box-sizing: border-box; margin-bottom: calc(var(--g) * 1.5); }
+  .ab-think { font-size: 28px; text-indent: 0; }
+  .ab-label { position: static; display: block; margin-bottom: 12px; }
+  .ab-section { margin-top: calc(var(--g) * 3); }
+  .ab-print { width: 280px; }
+  .ab-talks li > :first-child { font-size: 20px; }
+  .ab-talks li > :last-child { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ab-rise, .ab-polaroid { animation: none; }
+  .lr-in { translate: none; transition: none; }
+  .ab-carousel { overflow-x: auto; scrollbar-width: none; }
+  .ab-carousel-track { animation: none; }
+  .page-nav::before, .page-nav a, .page-nav .tick, .page-nav .fill, .page-nav .pn-name { animation: none; transition: none; }
+}

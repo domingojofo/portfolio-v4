@@ -4,7 +4,8 @@ export const pages = [
   { href: "/", label: "Design" },
   { href: "/about", label: "About" },
   { href: "/reading", label: "Reading" },
-  { href: "/writing", label: "Writing" },
+  // Writing is hidden for now (its routes redirect home, next.config.ts):
+  // { href: "/writing", label: "Writing" },
 ] as const;
 
 /** Index of the page a path belongs to (/design/x → Design, /writing/x → Writing). */

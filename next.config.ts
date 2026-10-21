@@ -10,7 +10,12 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*"],
   // The Design page is the home page now; projects still live at /design/[slug]
   async redirects() {
-    return [{ source: "/design", destination: "/", permanent: false }];
+    return [
+      { source: "/design", destination: "/", permanent: false },
+      // Writing is hidden for now
+      { source: "/writing", destination: "/", permanent: false },
+      { source: "/writing/:slug*", destination: "/", permanent: false },
+    ];
   },
 };
 

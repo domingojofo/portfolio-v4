@@ -3,7 +3,7 @@
    the warm ElevenLabs colours once the voice is generated (with the card). */
 .els { position: absolute; inset: 0; overflow: hidden; pointer-events: none; font-family: var(--sans); color: #000; background: #f4f4f2; }
 .els-backdrop { position: absolute; inset: -4%; }
-.els-backdrop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(6px); opacity: .9; animation: els-drift 24s ease-in-out infinite alternate; }
+.els-backdrop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(6px); opacity: .9; animation: els-drift 9s ease-in-out infinite alternate; }
 /* Always drifting, slowly */
 @keyframes els-drift { 0% { transform: scale(1.08) translate(0, 0) rotate(0deg); } 50% { transform: scale(1.16) translate(-3%, 2%) rotate(-2deg); } 100% { transform: scale(1.1) translate(3%, -2%) rotate(1.5deg); } }
 .els-backdrop-tint {
