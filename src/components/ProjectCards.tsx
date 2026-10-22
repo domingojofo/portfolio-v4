@@ -48,6 +48,13 @@ const COLS_BOTTOM = 24;  // px from the screen's bottom edge to the project and 
 const HOLD = 8000;       // ms each project stays in front before the counter moves on…
 const HOLD_FOR: Record<string, number> = { elevenlabs: 12500 };   // …long enough for its cover's loop
 const OUT_MS = 620, IN_MS = 520, IN_GAP = 150;   // slide down and away (ease-in) → pixelate back in
+const TEXT_AT = 0.7;   // phones: how far into the fall the card covers the project text (it swaps then)
+// The project text: a short fade and rise between projects; on phones (custom: true) a cut under the falling card
+const ABOUT = {
+  enter: { opacity: 0, y: 8 },
+  shown: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const } },
+  leave: (cut: boolean) => (cut ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, y: -6, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const } }),
+};
 const SAT_STEP = 0.06;   // viewport heights of scrolling between one thumbnail appearing and the next
 const LEAN = 0.45;       // share of the curl's slope the cards lean by — the full slope is too steep for a card
 const MAX_LEAN = 32 * Math.PI / 180;
@@ -58,6 +65,11 @@ export function ProjectCards() {
   const [satsIn, setSatsIn] = useState(0);   // how many floating thumbnails have appeared
   const [satFor, setSatFor] = useState<number | null>(0);   // whose thumbnails are showing (null mid-switch)
   const satTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // The project text under the cards. On phones it switches while the outgoing card is falling
+  // over it (`cut`: at once, no fade), so the card seems to change it as it passes
+  const [told, setTold] = useState(0);
+  const [cut, setCut] = useState(false);
+  const textTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(satTimer.current), []);
   // A small random nudge per thumbnail, re-rolled whenever a project comes to the front (rolled on
   // the client only, after mount, so server and client HTML match)
@@ -197,7 +209,10 @@ export function ProjectCards() {
       // Just under the front card; in three columns, beside it, level with its bottom edge
       const cardBottom = cards[0].offsetTop + cards[0].offsetHeight;
       // (three columns: at the bottom of the screen, the project text ending level with the counter's row)
-      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - tickH() - COLS_BOTTOM - bar.offsetHeight : cardBottom + BAR_GAP}px`;
+      // (phones: at the bottom of the screen, the counter's row 16px above its edge — the cards stay put)
+      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - tickH() - COLS_BOTTOM - bar.offsetHeight
+        : innerWidth < 1024 ? Math.max(cardBottom + BAR_GAP, stage.offsetHeight - viewH() + freeSpace().bottom - 16 - bar.offsetHeight)
+        : cardBottom + BAR_GAP}px`;
       bar.dataset.placed = "";
       // The counter runs while the deck fills the screen (through the pause), not from the hero
       const bottom = section.getBoundingClientRect().bottom;
@@ -330,6 +345,9 @@ export function ProjectCards() {
     clearTimeout(satTimer.current);
     const instant = matchMedia("(prefers-reduced-motion: reduce)").matches || out.length === 0;
     satTimer.current = setTimeout(() => { rollJitter(); setSatFor(i); }, instant ? 0 : OUT_MS);
+    clearTimeout(textTimer.current);
+    if (!instant && innerWidth < 1024) textTimer.current = setTimeout(() => { setCut(true); setTold(i); }, OUT_MS * TEXT_AT);
+    else { setCut(false); setTold(i); }
     switchRef.current(out);
     const section = sectionRef.current!;
     if (follow && section.getBoundingClientRect().top > 1) {
@@ -351,6 +369,7 @@ export function ProjectCards() {
     select((active + 1) % projects.length, false);
   };
   const p = projects[active];
+  const t = projects[told];
 
   const gallery = satFor === null ? [] : projects[satFor].gallery ?? [];
 
@@ -397,19 +416,18 @@ export function ProjectCards() {
         {/* Under the front card, outside the warped stack so it stays flat: the project on the left;
             the counter and "Open project" on the right */}
         <div className="deck-bar">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={p.slug} className="deck-about"
-              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
+          <AnimatePresence mode="wait" initial={false} custom={cut}>
+            <motion.div key={t.slug} className="deck-about" custom={cut} variants={ABOUT}
+              initial={cut ? false : "enter"} animate="shown" exit="leave">
               <p className="deck-co">
-                {p.logo
+                {t.logo
                   // eslint-disable-next-line @next/next/no-img-element -- static wordmark, in its own colours
-                  ? <img className="deck-logo" src={p.logo.src} width={p.logo.width} height={p.logo.height} alt={p.title} />
-                  : p.title}
+                  ? <img className="deck-logo" src={t.logo.src} width={t.logo.width} height={t.logo.height} alt={t.title} />
+                  : t.title}
               </p>
               {/* Gelica has no "#": the "(#4)" aside is set in Public Sans ExtraLight, as in the Figma */}
               <p className="deck-story">
-                {p.summary.split(/(\(#\d+\))/).map((t, n) => (n % 2 ? <span key={n} className="deck-aside">{t}</span> : t))}
+                {t.summary.split(/(\(#\d+\))/).map((t, n) => (n % 2 ? <span key={n} className="deck-aside">{t}</span> : t))}
               </p>
             </motion.div>
           </AnimatePresence>

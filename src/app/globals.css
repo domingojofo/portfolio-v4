@@ -1239,7 +1239,12 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
   /* Phones: the project above, the counter and "View project" in a row under it */
   .deck { --pause: 50svh; }
   .deck-bar { gap: 16px; }
-  .deck-about { justify-content: flex-start; --lines: 4; }   /* the text right under the card; spare lines fall below it */
+  /* The project's text sits at the bottom, just above the counter's row. A card leaving the deck
+     falls in front of the text (so it changes under it) and behind the counter and "View project":
+     the bar is no layer of its own, the text sits under the cards (z-index 1–5), the row above them */
+  .deck-bar { z-index: auto; }
+  .deck-about { justify-content: flex-end; --lines: 4; }
+  .deck-controls { position: relative; z-index: 10; }
   .deck-sats { display: none; }
 
   .edge-blur--bottom { --edge-h: 14vh; }   /* taller on mobile so it backs the 1.25× toolbar */
