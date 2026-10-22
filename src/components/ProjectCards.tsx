@@ -234,7 +234,7 @@ export function ProjectCards() {
         // the bottom of the company line (logo + name) in the left column
         const co = bar.querySelector<HTMLElement>(".deck-co");
         const barTop = stage.offsetHeight - tickH() - COLS_BOTTOM - bar.offsetHeight;
-        const coBottom = barTop + (co ? co.offsetTop + co.offsetHeight : 0) - (stage.offsetHeight - innerHeight);   // on screen
+        const coBottom = barTop + (co ? co.offsetTop + co.offsetHeight : 0) - (stage.offsetHeight - viewH());   // on screen
         colsTop = top + 6;
         for (let n = 0; n < 4; n++) {
           imgH = coBottom - (colsTop + STEP_Y * SHOWN * (w / 982));
@@ -246,11 +246,19 @@ export function ProjectCards() {
       section.dataset.sized = "";
     };
 
+    // The screen height the deck is pinned to: 100svh, the height with the browser's toolbars
+    // showing (the stage's CSS). innerHeight grows when iOS Safari's toolbar collapses on scroll,
+    // which would put the bar below the pinned stage, cut off.
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:fixed;left:0;top:0;width:0;height:100svh;visibility:hidden;pointer-events:none";
+    document.body.append(probe);
+    const viewH = () => Math.min(innerHeight, probe.offsetHeight || innerHeight);
+
     // The free space: below the top bar's content, above the highlights ticker (the bottom nav and
     // LinkedIn/CV are hidden while the deck fills the screen)
     const freeSpace = () => {
       const bar = document.querySelector(".nav-inner")?.getBoundingClientRect();
-      return { top: bar ? bar.bottom : 0, bottom: innerHeight - tickH() - 8 };
+      return { top: bar ? bar.bottom : 0, bottom: viewH() - tickH() - 8 };
     };
 
     const measure = () => {
@@ -296,6 +304,7 @@ export function ProjectCards() {
     ro.observe(cards[0]);
     ro.observe(bar);   // the summary can wrap differently per project
     return () => {
+      probe.remove();
       ro.disconnect();
       clearTimeout(switchTimer);
       cancelAnimationFrame(raf);

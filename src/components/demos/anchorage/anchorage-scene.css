@@ -17,14 +17,14 @@
 .ans-chrome i { width: 9px; height: 9px; border-radius: 50%; background: rgb(29 52 74 / .18); }
 .ans-phone { position: absolute; overflow: hidden; background: #000; }
 .ans-phone {
-  right: 9%; top: 34%; width: 80%;   /* the whole phone width shows, set right of centre: room on the right */
-  border: 5px solid #0d0d0f; border-bottom: 0;
-  border-radius: 0 30px 0 0;
+  left: 50%; top: 22%; width: 78%; translate: -50% 0;   /* a phone rising from the bottom, centred: its top half shows */
+  border: 6px solid #0d0d0f; border-bottom: 0;
+  border-radius: 38px 38px 0 0;
   box-shadow: 0 0 0 1px rgb(255 255 255 / .3), 0 -10px 40px rgb(10 20 40 / .35);
 }
 .ans-screen { position: relative; display: block; overflow: hidden; }
 .ans-window .ans-screen { aspect-ratio: 900 / 820; background: #000; }   /* the app's right 900px, top 820px */
-.ans-phone .ans-screen { aspect-ratio: 390 / 844; border-radius: 0 25px 0 0; }
+.ans-phone .ans-screen { aspect-ratio: 390 / 844; border-radius: 32px 32px 0 0; }
 .ans-cam {
   position: absolute; inset: 0;
   transition: transform 1.1s cubic-bezier(.65, 0, .35, 1);
