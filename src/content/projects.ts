@@ -12,6 +12,8 @@ type Cover = Img & {
   /** An animated scene: drawn over the gradient (elevenlabs), the whole cover (anchorage), or a
    *  device over the cover video (oamo) */
   scene?: "elevenlabs" | "anchorage" | "oamo";
+  /** Badges in the bottom corners of the home page's card, over the cover (Chipp: its mascot and award) */
+  badges?: (Img & { at: "left" | "right" })[];
 };
 
 export type Project = {
@@ -20,8 +22,8 @@ export type Project = {
   title: string;
   /** Short label */
   short: string;
-  /** The company's logo mark (square); without one, the deck shows the name's first letter in a tile */
-  logo?: string;
+  /** The company's wordmark (in its own colours), shown above its line in the deck: src and its size in px */
+  logo?: { src: string; width: number; height: number };
   /** What I did there and the impact, in a few lines. **Marked** parts are highlighted (Marked.tsx) */
   summary: string;
   year: string;
@@ -37,9 +39,9 @@ export const projects: Project[] = [
     slug: "anchorage",
     title: "Anchorage Digital",
     short: "Anchorage",
-    logo: "/icons/anchorage-mark.svg",
+    logo: { src: "/images/logos/anchorage.svg", width: 115, height: 32 },
     summary:
-      "Led the bank’s **fiat experience**, launching **payment methods and interest** that earned **$1M in 3 months**.",
+      "Led USD banking, launching payments and interest that earned $1M in 3 months.",
     year: "2022 — Now",
     role: "Staff product designer",
     // Hero: the Cash management app touring itself over The Creation of Adam (AnchorageScene)
@@ -62,15 +64,21 @@ export const projects: Project[] = [
     slug: "chipp",
     title: "Chipp.ai",
     short: "Chipp",
+    logo: { src: "/images/logos/chipp.svg", width: 84, height: 24 },
     summary:
-      "**Founding designer (employee #4)**, then **head of design**. Built the **AI agent studio** and brand; helped unlock **$2M in seed**.",
+      "Founding designer (#4), then head of design. Built the AI agent studio and brand; helped raise a $2M seed.",
     year: "2024",
-    role: "Founding designer, then head of design",
+    role: "Design consultant\n↳ Head of Design",
     cover: {
-      src: "/demos/chipp/features.png",
-      width: 3150,
-      height: 1716,
-      alt: "Chipp feature board",
+      src: "/demos/chipp/brand-reel-poster.jpg",
+      video: "/demos/chipp/brand-reel.mp4",
+      width: 1080,
+      height: 1080,
+      alt: "Chipp's site and product, scrolling by",
+      badges: [
+        { at: "left", src: "/demos/chipp/mascot-builder.svg", width: 230, height: 233, alt: "Chipp's mascot in a hard hat" },
+        { at: "right", src: "/demos/chipp/rgd-award.svg", width: 487, height: 345, alt: "2025 RGD Branding Awards winner" },
+      ],
     },
     gallery: [
       { src: "/demos/chipp/brand-guidelines.png", width: 1718, height: 1206, alt: "", label: "Brand guidelines" },
@@ -84,8 +92,9 @@ export const projects: Project[] = [
     slug: "oamo",
     title: "OAMO",
     short: "OAMO",
+    logo: { src: "/images/logos/oamo.svg", width: 135, height: 24 },
     summary:
-      "**Lead product designer** across brand, marketing, UX, UI, motion and web, as it **grew past 200k users** and was **acquired**.",
+      "Lead designer for everything: brand, web, product UX, UI. Scaled past 200k users to acquisition.",
     year: "",
     role: "Lead product designer",
     // Hero: the bounce loop (silent, 720px H.264; the poster is its first frame) with the MacBook and
@@ -111,8 +120,9 @@ export const projects: Project[] = [
     slug: "elevenlabs",
     title: "ElevenLabs",
     short: "ElevenLabs",
+    logo: { src: "/images/logos/elevenlabs-logo.png", width: 186, height: 24 },
     summary:
-      "**Freelance product designer** who raised **conversion into voice discovery** and **time-to-explore by 15%**.",
+      "Freelance product designer who lifted voice discovery conversion and exploration time by 15%.",
     year: "",
     role: "",
     // Hero for now: the animated warped gradient (GradientField, Ember palette)

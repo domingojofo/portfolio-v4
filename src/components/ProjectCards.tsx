@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { projects } from "@/content/projects";
+import { setModalOrigin } from "@/lib/modalOrigin";
 import { Cover } from "./Cover";
-import { Highlights } from "./Highlights";
-import { Marked } from "./Marked";
+
 import { pixelCard } from "@/lib/pixelCard";
 import { makeBend, setWarp, WARP_HINGE, WARP_PERSPECTIVE } from "@/lib/warp";
 
@@ -44,7 +44,7 @@ const RATIO = 1.12;      // the cover's width to its height (stacked layout)…
 const RATIO_COLS = 1.08; // …and in three columns, where the height is set by the company line
 const BAR_GAP = 20;      // px between the front card and the bar under it (stacked layout)
 const COLS_MIN = 1200;   // px wide from which the section is three columns (matches globals.css)
-const COLS_BOTTOM = 24;  // px from the highlights ticker's peek to the project and counter (the nav is hidden here)
+const COLS_BOTTOM = 24;  // px from the screen's bottom edge to the project and counter (the nav is hidden here)
 const HOLD = 8000;       // ms each project stays in front before the counter moves on…
 const HOLD_FOR: Record<string, number> = { elevenlabs: 12500 };   // …long enough for its cover's loop
 const OUT_MS = 620, IN_MS = 520, IN_GAP = 150;   // slide down and away (ease-in) → pixelate back in
@@ -83,7 +83,8 @@ export function ProjectCards() {
     const cards = [...section.querySelectorAll<HTMLElement>(".deck-card")];
     const bar = section.querySelector<HTMLElement>(".deck-bar")!;
     const controls = bar.querySelector<HTMLElement>(".deck-controls")!;
-    const ticker = section.querySelector<HTMLElement>(".marquee")!;
+    const ticker = section.querySelector<HTMLElement>(".marquee");   // the highlights ticker (hidden for now)
+    const tickH = () => (ticker ? ticker.offsetHeight / 2 : 0);
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0, k = 1, pinAt = 1, step = STEP_Y, colsTop = 0;
     const leaving = new Set<number>();   // cards mid slide-out: place() leaves them alone
@@ -196,7 +197,7 @@ export function ProjectCards() {
       // Just under the front card; in three columns, beside it, level with its bottom edge
       const cardBottom = cards[0].offsetTop + cards[0].offsetHeight;
       // (three columns: at the bottom of the screen, the project text ending level with the counter's row)
-      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - ticker.offsetHeight / 2 - COLS_BOTTOM - bar.offsetHeight : cardBottom + BAR_GAP}px`;
+      bar.style.top = `${innerWidth >= COLS_MIN ? stage.offsetHeight - tickH() - COLS_BOTTOM - bar.offsetHeight : cardBottom + BAR_GAP}px`;
       bar.dataset.placed = "";
       // The counter runs while the deck fills the screen (through the pause), not from the hero
       const bottom = section.getBoundingClientRect().bottom;
@@ -232,7 +233,7 @@ export function ProjectCards() {
         // Three columns: the stack starts just under the top bar and the front card runs down to
         // the bottom of the company line (logo + name) in the left column
         const co = bar.querySelector<HTMLElement>(".deck-co");
-        const barTop = stage.offsetHeight - ticker.offsetHeight / 2 - COLS_BOTTOM - bar.offsetHeight;
+        const barTop = stage.offsetHeight - tickH() - COLS_BOTTOM - bar.offsetHeight;
         const coBottom = barTop + (co ? co.offsetTop + co.offsetHeight : 0) - (stage.offsetHeight - innerHeight);   // on screen
         colsTop = top + 6;
         for (let n = 0; n < 4; n++) {
@@ -249,7 +250,7 @@ export function ProjectCards() {
     // LinkedIn/CV are hidden while the deck fills the screen)
     const freeSpace = () => {
       const bar = document.querySelector(".nav-inner")?.getBoundingClientRect();
-      return { top: bar ? bar.bottom : 0, bottom: innerHeight - ticker.offsetHeight / 2 - 8 };   // half the ticker peeks
+      return { top: bar ? bar.bottom : 0, bottom: innerHeight - tickH() - 8 };
     };
 
     const measure = () => {
@@ -371,7 +372,7 @@ export function ProjectCards() {
                 className="deck-link"
                 aria-label={i === active ? `Open ${q.title}` : `Show ${q.title}`}
                 onClick={(e) => {
-                  if (i === active) return;
+                  if (i === active) { setModalOrigin(e.currentTarget.querySelector(".deck-img")); return; }   // the modal grows out of this card
                   e.preventDefault();
                   select(i);
                 }}
@@ -393,12 +394,14 @@ export function ProjectCards() {
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
               <p className="deck-co">
                 {p.logo
-                  // eslint-disable-next-line @next/next/no-img-element -- tiny static SVG
-                  ? <img src={p.logo} width={16} height={16} alt="" />
-                  : <span className="deck-co-tile" aria-hidden="true">{p.title[0]}</span>}
-                {p.title}
+                  // eslint-disable-next-line @next/next/no-img-element -- static wordmark, in its own colours
+                  ? <img className="deck-logo" src={p.logo.src} width={p.logo.width} height={p.logo.height} alt={p.title} />
+                  : p.title}
               </p>
-              <p className="deck-story"><Marked text={p.summary} /></p>
+              {/* Gelica has no "#": the "(#4)" aside is set in Public Sans ExtraLight, as in the Figma */}
+              <p className="deck-story">
+                {p.summary.split(/(\(#\d+\))/).map((t, n) => (n % 2 ? <span key={n} className="deck-aside">{t}</span> : t))}
+              </p>
             </motion.div>
           </AnimatePresence>
           <div className="deck-controls">
@@ -407,22 +410,24 @@ export function ProjectCards() {
                 <button key={q.slug} type="button" aria-label={q.title} aria-current={i === active || undefined}
                   onClick={() => select(i, false)}>
                   {String(i + 1).padStart(2, "0")}
+                  {/* The countdown (1inch-style): the number fills with ink from the top over its hold */}
                   {i === active && (
-                    <span className="deck-timer" key={q.slug} data-run={running || undefined}
-                      style={{ animationDuration: `${HOLD_FOR[q.slug] ?? HOLD}ms` }} onAnimationEnd={next} />
+                    <span className="deck-timer" key={q.slug} data-run={running || undefined} aria-hidden="true"
+                      style={{ animationDuration: `${HOLD_FOR[q.slug] ?? HOLD}ms` }} onAnimationEnd={next}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                   )}
                 </button>
               ))}
             </nav>
-            <Link href={`/design/${p.slug}`} scroll={false} className="deck-open">View project</Link>
+            <Link href={`/design/${p.slug}`} scroll={false} className="deck-open"
+              onClick={() => setModalOrigin(sectionRef.current?.querySelectorAll(".deck-img")[active] ?? null)}>View project</Link>
           </div>
         </div>
 
       </div>
 
-      {/* After the stage: half of it peeks up along the bottom of the screen while the deck holds
-          (sticky), then it scrolls up whole with the deck, uncovering the footer (globals.css) */}
-      <Highlights />
+      {/* The highlights ticker (Highlights.tsx) is hidden for now; it went here, after the stage */}
     </section>
   );
 }

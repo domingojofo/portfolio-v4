@@ -56,6 +56,7 @@
 .chipp-brand:not(.is-in) img { scale: 1.06; }
 
 /* ---------- Feature board ---------- */
+.chipp-features { background: #EDEBE7; border-radius: 12px; }   /* paper behind the board, not black; the radius clips the black baked into its PNG corners */
 .chipp-features img { display: block; width: 100%; height: auto; }
 .chipp-features:not(.is-in) img { scale: 1.04; }
 

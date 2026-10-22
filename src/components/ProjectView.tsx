@@ -1,85 +1,42 @@
 import type { Project } from "@/content/projects";
-import { Cover } from "./Cover";
 import { BanksHeroCard } from "./demos/banks/BanksHeroCard";
-import { ChippFeaturesCard, ChippHeroCard, ChippRow } from "./demos/chipp/ChippCards";
+import { ChippStory } from "./demos/chipp/ChippStory";
+import { OamoGallery } from "./demos/oamo/OamoGallery";
 import { TrustedDestinationsCard } from "./demos/trusted-destinations/TrustedDestinationsCard";
 import { VirtualAccountsCard } from "./demos/va-charts/VirtualAccountsCard";
-import { OamoGallery } from "./demos/oamo/OamoGallery";
 import { VoiceStudioCard } from "./demos/voice-studio/VoiceStudioCard";
-import { Marked } from "./Marked";
+import { ProjectStory } from "./ProjectStory";
 
-// Project content — shared by the modal and the full /design/[slug] page. Every project opens with
-// the same header (title, role · year, cover, summary); Anchorage and Chipp then show their panels
-// (everything that used to be on the Design page).
+// Project content — shared by the modal and the full /design/[slug] page. Every project uses the
+// same story layout (ProjectStory). Chipp has its full story; the others carry their one-line
+// summary as the lead until theirs are written, and their existing work as the parts.
+const plain = (s: string) => s.replace(/\*\*/g, "");
+
 export function ProjectView({ project, headingId }: { project: Project; headingId?: string }) {
-  return (
-    <article className="project">
-      <h1 id={headingId}>{project.title}</h1>
-      {(project.role || project.year) && (
-        <div className="project-meta muted">
-          {project.role && <span>{project.role}</span>}
-          {project.year && <span>{project.year}</span>}
-        </div>
-      )}
-      <Cover cover={project.cover} sizes="(max-width: 1008px) 100vw, 960px" eager />
-      <p><Marked text={project.summary} /></p>
-      {project.slug === "anchorage" && <AnchorageBody />}
-      {project.slug === "chipp" && <ChippBody />}
-      {project.slug === "oamo" && (
-        <Section title="Product">
-          <OamoGallery />
-        </Section>
-      )}
-      {project.slug === "elevenlabs" && (
-        <Section title="Voice generation">
-          <VoiceStudioCard />
-        </Section>
-      )}
-    </article>
-  );
-}
+  if (project.slug === "chipp") return <ChippStory headingId={headingId} />;
+  const base = { project, headingId, lead: plain(project.summary) };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="project-section">
-      <h2>{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-// The playable iOS prototype beside the website's banks hero animation (same height), then the
-// virtual accounts chart
-function AnchorageBody() {
-  return (
-    <>
-      <Section title="Trusted Destinations">
-        <div className="project-row">
-          <div><TrustedDestinationsCard /></div>
-          <div><BanksHeroCard /></div>
-        </div>
-      </Section>
-      <Section title="Virtual accounts">
-        <VirtualAccountsCard />
-      </Section>
-    </>
-  );
-}
-
-// Laid out as in the Figma "Ideas" page: the brand board, the mascot photos beside the
-// guidelines, then the feature board
-function ChippBody() {
-  return (
-    <>
-      <Section title="Brand">
-        <ChippHeroCard />
-      </Section>
-      <Section title="Mascot and guidelines">
-        <ChippRow />
-      </Section>
-      <Section title="Builder">
-        <ChippFeaturesCard />
-      </Section>
-    </>
-  );
+  if (project.slug === "anchorage") {
+    return (
+      <ProjectStory {...base} parts={[
+        {
+          id: "anchorage-td", nav: "Trusted Destinations", label: "Trusted Destinations",
+          work: [
+            <div key="td" className="project-row">
+              <div><TrustedDestinationsCard /></div>
+              <div><BanksHeroCard /></div>
+            </div>,
+          ],
+        },
+        { id: "anchorage-va", nav: "Virtual accounts", label: "Virtual accounts", work: [<VirtualAccountsCard key="va" />] },
+      ]} />
+    );
+  }
+  if (project.slug === "oamo") {
+    return <ProjectStory {...base} parts={[{ id: "oamo-product", nav: "Product", label: "Product", work: [<OamoGallery key="g" />] }]} />;
+  }
+  if (project.slug === "elevenlabs") {
+    return <ProjectStory {...base} parts={[{ id: "elevenlabs-voice", nav: "Voice generation", label: "Voice generation", work: [<VoiceStudioCard key="v" />] }]} />;
+  }
+  return <ProjectStory {...base} parts={[]} />;
 }

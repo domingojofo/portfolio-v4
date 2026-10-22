@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="25" height="30" viewBox="91 64 33 40" fill="none">
+  <defs>
+    <path id="c" d="M71.4691 50.7313L71.5977 46.3501L95.986 67.3788L64.3507 73.396L66.43 69.5375C68.1619 66.3235 71.4664 64.2672 75.1149 64.1332L76.2883 59.754C73.1956 57.8138 71.3619 54.3807 71.4691 50.7313Z"/>
+    <mask id="m" maskUnits="userSpaceOnUse" x="61.9" y="43.9" width="40.16" height="39.45" fill="black"><rect fill="white" x="61.9" y="43.9" width="40.16" height="39.45"/><use href="#c"/></mask>
+    <filter id="s" x="88" y="62" width="40" height="46" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity=".3"/></filter>
+  </defs>
+  <g filter="url(#s)">
+    <!-- the Figma arrow, turned to point up and left like a system pointer (about its tip) -->
+    <g transform="rotate(-127.5 95.986 67.3788)">
+      <use href="#c" fill="#1D344A"/>
+      <path d="M71.5977 46.3501L71.4691 50.7313C71.3619 54.3807 73.1956 57.8138 76.2883 59.754L75.1149 64.1332C71.4664 64.2672 68.1619 66.3235 66.43 69.5375L64.3507 73.396L95.986 67.3788L71.5977 46.3501Z" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" stroke="#B5D5F4" mask="url(#m)"/>
+    </g>
+  </g>
+</svg>

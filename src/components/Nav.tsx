@@ -151,7 +151,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const STAGGER = 0.05;
 
 // Top: the blur strip with the logo + name (→ Hey, replays the intro) on the left; location and
-// live time on the right (blended by difference, so it reads on light and dark). Stays put while scrolling.
+// live time on the right (blended by difference, so it reads on light and dark; the skyline stays navy). Stays put while scrolling; the name steps away once you scroll down.
 // Bottom: the ← → hint on the left, the floating icon toolbar centred (Toolbar.tsx; LinkedIn and the
 // CV are under its links button).
 // Word-nav mode (?nav=words): page links centred; once you scroll they drop away one after
@@ -183,6 +183,11 @@ export function Nav() {
       <p className="locale">
         <span>Brooklyn</span>
         <span className="locale-icon" aria-hidden="true" />
+        <NycClock />
+      </p>
+      <p className="locale locale-mark" aria-hidden="true">
+        <span>Brooklyn</span>
+        <span className="locale-icon" />
         <NycClock />
       </p>
 

@@ -26,6 +26,9 @@
 
 * { box-sizing: border-box; margin: 0; }
 html { background: var(--stage); scroll-behavior: smooth; }
+/* The site's pointer: the navy cursor arrow (its tip, at 4 3, is the hotspot). Links and buttons
+   keep the hand. */
+@media (hover: hover) and (pointer: fine) { html { cursor: url(/icons/cursor.svg) 4 3, auto; } }
 body {
   background: var(--stage);
   color: var(--ink);
@@ -109,7 +112,7 @@ html[data-intro="playing"] .dot-grid { opacity: 0; transition: none; }
   width: min(352px, 100% - 32px);
   translate: -50% 0;
   text-align: center;
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.4;
 }
 html[data-intro="playing"] .bio { opacity: 0; }
@@ -181,6 +184,12 @@ html.fonts-loading .deck-cards { opacity: 0; }                               /* 
 }
 .deck-img :is(img, video) { display: block; width: 100%; height: 100%; object-fit: cover; transition: scale .6s cubic-bezier(.22, 1, .36, 1); }
 .deck-link:hover .deck-img :is(img, video) { scale: 1.02; }
+/* A cover's badge over the card (Chipp's award), bottom right; it doesn't zoom with the cover */
+.deck-img .cover-badged { position: absolute; inset: 0; display: block; }
+.deck-img .cover-badge { position: absolute; bottom: 20px; height: auto; object-fit: contain; filter: drop-shadow(0 6px 14px rgb(0 0 0 / .18)); }
+.deck-img .cover-badge.is-right { right: 20px; width: clamp(124px, 31%, 220px); }   /* the award */
+.deck-img .cover-badge.is-left { left: 20px; width: clamp(76px, 18%, 128px); }      /* the mascot */
+.deck-link:hover .deck-img .cover-badge { scale: 1; }
 
 /* Under the stack (ProjectCards), 1inch-style: the project in front on the left; the counter and
    "Open project" on the right, out at the page's edges. Hidden until ProjectCards has placed it
@@ -188,85 +197,72 @@ html.fonts-loading .deck-cards { opacity: 0; }                               /* 
 .deck-bar {
   position: absolute;
   z-index: 10;                     /* above the cards, so one sliding out passes under it */
-  left: 40px; right: 40px; top: 0;
+  left: 24px; right: 24px; top: 0;
   display: flex; flex-direction: column; gap: 16px;   /* stacked under the cards (iPad, phones) */
-  color: #0F2132;
+  color: #1D344A;
   pointer-events: none;
 }
 .deck-bar > * { pointer-events: auto; }
 .deck-bar:not([data-placed]),
 html[data-intro="playing"] .deck-bar,
 html.fonts-loading .deck-bar { visibility: hidden; }
-/* The project: a fixed height (the company + four lines), its content at the bottom, so the bar
-   keeps one height and the stack doesn't shift between projects */
+/* The project (Figma 646:33044…): its wordmark, then the line — a fixed height (the tallest mark
+   + three lines), content at the bottom, so the bar keeps one height between projects */
 .deck-about {
-  --lines: 4;
+  --lines: 3;
   display: flex; flex-direction: column; justify-content: flex-end;
-  max-width: 560px;
-  height: calc(16px + 12px + var(--lines) * 1.35 * 20px);
+  max-width: 400px;
+  height: calc(32px + 12px + var(--lines) * 1.2 * 24px);
 }
 .deck-bar p { margin: 0; }
-/* The company: its logo and name, small caps */
-.deck-co {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: .06em; text-transform: uppercase;
-}
-.deck-co img { display: block; width: 16px; height: 16px; border-radius: 2px; }
-.deck-co-tile {
-  display: grid; place-items: center; width: 16px; height: 16px; border-radius: 3px;
-  background: #1D344A; color: var(--stage); font-size: 10px; letter-spacing: 0;
-}
-/* What I did and the impact, in one go: the marked parts (Marked.tsx) in full ink, the rest softer */
+.deck-co { display: flex; align-items: center; min-height: 24px; }
+.deck-logo { display: block; width: auto; max-width: 100%; }
+/* Gelica ExtraLight 24 at 120% line height, all in the primary navy */
 .deck-story {
   margin-top: 12px !important;
-  font-family: var(--serif); font-weight: 400; font-size: 20px; line-height: 1.35;
-  color: rgb(15 33 50 / .55);
+  font-family: var(--serif); font-weight: 200; font-size: 24px; line-height: 1.2; letter-spacing: -0.03em;
+  color: #1D344A;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines); line-clamp: var(--lines); overflow: hidden;
 }
-.deck-story strong { font-weight: 400; color: #0F2132; }
-.deck-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px 28px; }
-/* The counter: big numbers, the active one dark; its line fills as it counts down to the next */
-.deck-count { display: flex; gap: 4px; }
+.deck-aside { font-family: var(--sans); font-weight: 200; }
+.deck-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; }
+/* The counter (Figma 654:33048): Public Sans Black 24, the others at half ink. The active one fills
+   with full ink from the top over its hold (1inch's countdown); then the next project comes up */
+.deck-count { display: flex; gap: 16px; }
 .deck-count button {
   position: relative;
-  border: 0; padding: 6px 6px 10px;
+  border: 0; padding: 0;
   background: none;
-  font: inherit; font-size: 26px; font-weight: 700; line-height: 1;   /* Public Sans Bold */
-  font-variant-numeric: tabular-nums; letter-spacing: -.01em;
-  color: rgb(15 33 50 / .3);
+  font: inherit; font-size: 24px; font-weight: 900; line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(29 52 74 / .5);
   cursor: pointer;
   transition: color .3s ease;
 }
-.deck-count button:hover { color: rgb(15 33 50 / .6); }
-.deck-count button[aria-current] { color: #0F2132; cursor: default; }
-.deck-count button::after {        /* the track */
-  content: ""; position: absolute; left: 6px; right: 6px; bottom: 2px; height: 2px; border-radius: 1px;
-  background: rgb(15 33 50 / .12);
-  opacity: 0; transition: opacity .3s ease;
-}
-.deck-count button[aria-current]::after { opacity: 1; }
-.deck-count button:focus-visible { outline: 2px solid #0F2132; outline-offset: 2px; border-radius: 4px; }
+.deck-count button:hover { color: rgb(29 52 74 / .75); }
+.deck-count button[aria-current] { cursor: default; }
+.deck-count button:focus-visible { outline: 2px solid #1D344A; outline-offset: 4px; border-radius: 4px; }
 .deck-timer {
-  position: absolute; left: 6px; right: 6px; bottom: 2px; z-index: 1; height: 2px; border-radius: 1px;
-  background: #0F2132;
-  transform-origin: 0 50%;
-  animation: deck-timer linear both paused;
+  position: absolute; inset: 0; z-index: 1;
+  color: #1D344A;
+  clip-path: inset(0 0 100% 0);
+  animation: deck-fill linear both paused;
 }
 .deck-timer[data-run] { animation-play-state: running; }
-@keyframes deck-timer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes deck-fill { to { clip-path: inset(0 0 0 0); } }
 /* View project (Figma 214:114698): navy key, light-blue edge (thicker at the bottom), soft inner top light */
 .deck-open {
   display: flex; align-items: center;
-  padding: 12px 16px;
-  border-radius: 6px;
-  border: 1px solid rgb(126 182 250 / .3); border-bottom-width: 2px;
-  background: #1D344A; color: #D9D9D2;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgb(126 182 250 / .3); border-bottom-width: 4px;
+  background: #1D344A; color: #fff;
   box-shadow: inset 0 1px 1px 0 rgb(255 255 255 / .2), 0 1px 2px 0 rgb(0 0 0 / .2);
-  font-weight: 600; font-size: 16px; line-height: 20px; text-decoration: none; white-space: nowrap;
+  font-weight: 600; font-size: 18px; line-height: 20px; text-decoration: none; white-space: nowrap;
   transition: background-color .2s ease, translate .15s ease, border-bottom-width .15s ease;
 }
 .deck-open:hover { background: #22405b; }
-.deck-open:active { translate: 0 1px; border-bottom-width: 1px; }
+.deck-open:active { translate: 0 3px; border-bottom-width: 1px; }   /* the key presses down onto its edge */
 
 /* Wide screens: three columns — the project | the stack | the counter and "View project" — each side
    kept to the space beside the cards, 8px from them (ProjectCards, COLS_MIN), at the bottom of the
@@ -274,14 +270,14 @@ html.fonts-loading .deck-bar { visibility: hidden; }
    with it. */
 @media (min-width: 1200px) {
   .deck-bar {
-    --side: calc((100vw - var(--card-w, 560px)) / 2 - 40px - 8px);
+    --side: calc((100vw - var(--card-w, 560px)) / 2 - 24px - 8px);
     flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 0;
   }
-  .deck-about { --lines: 4; width: min(560px, var(--side)); max-width: none; justify-content: flex-start; }   /* never into the middle column; the company line at its top (the front card ends level with it) */
-  .deck-controls { width: var(--side); flex-wrap: wrap; justify-content: flex-end; gap: 4px 28px; }   /* right-aligned; narrow: "View project" wraps under */
+  .deck-about { width: min(400px, var(--side)); max-width: none; justify-content: flex-start; }   /* never into the middle column; the wordmark at its top (the front card ends level with it) */
+  .deck-controls { width: var(--side); flex-wrap: wrap; justify-content: flex-end; gap: 8px 16px; }   /* right-aligned; narrow: "View project" wraps under */
 }
 .deck-open:focus-visible { outline: 2px solid #0F2132; outline-offset: 3px; }
-@media (prefers-reduced-motion: reduce) { .deck-timer { display: none; } }
+@media (prefers-reduced-motion: reduce) { .deck-timer { animation: none; clip-path: none; } }
 
 /* Thumbnails floating around the deck for the project in front (desktop) */
 .deck-sat {
@@ -324,7 +320,7 @@ html.fonts-loading .deck-bar { visibility: hidden; }
 /* It follows the deck's stage in the section, its natural place the section's very end. Sticky
    with a negative bottom, it holds half out of the screen while the deck pins; as the deck ends it
    scrolls up whole, and the footer comes up from under it. Shown once the deck is reached. */
-html { --tk-h: calc(80px + clamp(16px, 2.4svh, 22px)); }   /* the highlights ticker's height */
+html { --tk-h: 0px; }   /* the highlights ticker's height — 0 while it's hidden (was calc(80px + clamp(16px, 2.4svh, 22px))) */
 .marquee {
   position: sticky; bottom: calc(var(--tk-h) / -2); z-index: 11;   /* over cards sliding out */
   margin-top: calc(var(--pause) - var(--tk-h) / 2);
@@ -708,9 +704,13 @@ html[data-intro="playing"] .hero:not(.is-running) .hero-title .rv-in,
   background: var(--stage);
   overflow: hidden;
 }
-.modal-panel:focus { outline: none; }   /* focused on open for keyboard users; no ring around the sheet */
+.modal-panel:focus { outline: none; }
+/* Growing out of a card: the content waits for the sheet to land, then fades up */
+.modal-panel .modal-scroll, .modal-panel .modal-close { transition: opacity .28s ease, translate .38s cubic-bezier(.22, 1, .36, 1); }
+.modal-panel:not([data-landed]) .modal-scroll { opacity: 0; translate: 0 8px; }
+.modal-panel:not([data-landed]) .modal-close { opacity: 0; }   /* focused on open for keyboard users; no ring around the sheet */
 .modal-scroll { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
-.modal-body { max-width: 1040px; margin: 0 auto; padding: 72px 40px 96px; }
+.modal-body { max-width: 1040px; margin: 0 auto; padding: 25vh 40px 96px; }   /* the content starts a quarter of the way down */
 
 /* Close: a paper tile like the floating nav's, with the same lift on hover */
 .modal-close {
@@ -813,6 +813,9 @@ html[data-intro="playing"] .nav-inner { opacity: 0; pointer-events: none; }
 .logo svg { width: 32px; height: 14px; }
 /* Top bar text: Public Sans Light, all caps */
 .logo-name, .locale { font-family: var(--sans); font-weight: 300; font-size: 15px; text-transform: uppercase; letter-spacing: .02em; color: #1D344A; }
+/* Scrolled down: the name steps away, the logo stays */
+.logo-name { transition: opacity .3s ease; }
+html.is-scrolled .logo-name { opacity: 0; }
 .logo:focus-visible, .dock a:focus-visible { outline: 2px solid var(--hl); outline-offset: 4px; }
 /* Brooklyn, the skyline and the time: one style with a difference blend — #8B939A on the paper,
    shifting over whatever passes under it — fixed over the top bar's right end */
@@ -833,6 +836,11 @@ html[data-intro="playing"] .locale { opacity: 0; }
           mask: url(/icons/nyc.svg) center / contain no-repeat;
 }
 .clock { display: inline-block; min-width: 11ch; font-variant-numeric: tabular-nums; }
+/* The skyline stays navy, like the name: the blended row hides its own, and an unblended copy of the
+   row laid exactly over it shows only the icon */
+.locale > .locale-icon { visibility: hidden; }
+.locale.locale-mark { color: transparent; mix-blend-mode: normal; }
+.locale.locale-mark > .locale-icon { visibility: visible; background: #1D344A; }
 
 /* Bottom dock (word-nav mode, desktop): page links centred above the blur. On scroll they drop
    away and the Menu button rises into place. */
@@ -1067,7 +1075,7 @@ html:is(.nav-away, .deck-focus) .tb { translate: -50% calc(100% + 40px); opacity
 html:is(.nav-away, .deck-focus) :is(.dock, .mobile-bar) { translate: 0 calc(100% + 40px); opacity: 0; pointer-events: none; transition: translate .45s cubic-bezier(.55, 0, .75, .3), opacity .3s ease .1s; }
 .dock, .mobile-bar { transition: opacity .5s ease .15s, translate .55s cubic-bezier(.22, 1, .36, 1); }
 html.nav-away .edge-blur--bottom { --edge-h: 0px; }   /* no nav to back: nothing blurs the footer's bottom edge */
-html.deck-focus .edge-blur--bottom { --edge-h: calc((80px + clamp(16px, 2.4svh, 22px)) / 2); }   /* the ticker's peek */
+html.deck-focus .edge-blur--bottom { --edge-h: calc(var(--tk-h) / 2); }   /* the ticker's peek (none while it's hidden) */
 
 /* Which nav shows: the icon toolbar by default (html.nav-toolbar); the word nav with ?nav=words */
 html:not(.nav-toolbar) .tb { display: none; }
@@ -1226,15 +1234,12 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
 @media (max-width: 1023px) {
   .hero-title { top: 72px; font-size: min(64px, calc((100vw - 32px) / 11)); }   /* the longest line is ≈10.7em */
   .hero { min-height: 560px; }
-  .bio { font-size: 16px; }
+  .bio { font-size: 18px; }
   .deck-card { width: var(--card-w, calc(100vw - 32px)); }
   /* Phones: the project above, the counter and "View project" in a row under it */
   .deck { --pause: 50svh; }
-  .deck-bar { left: 16px; right: 16px; gap: 12px; }
-  .deck-about { justify-content: flex-start; }   /* the text right under the card; spare lines fall below it */
-  .deck-about { --lines: 4; }
-  .deck-count { margin-left: -6px; }
-  .deck-count button { font-size: 22px; }
+  .deck-bar { gap: 16px; }
+  .deck-about { justify-content: flex-start; --lines: 4; }   /* the text right under the card; spare lines fall below it */
   .deck-sats { display: none; }
 
   .edge-blur--bottom { --edge-h: 14vh; }   /* taller on mobile so it backs the 1.25× toolbar */
@@ -1252,7 +1257,7 @@ html.nav-toolbar :is(.dock-links, .dock .menu-trigger, .mobile-bar .page-menu-bu
   .page { padding: 112px 20px 160px; }
   .modal-backdrop { padding: 8px; }
   .modal-panel { border-radius: 12px; }
-  .modal-body { padding: 64px 20px 96px; }
+  .modal-body { padding: 25vh 20px 96px; }
   .modal-close { top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 7px; }   /* 1.25× on touch, like the nav */
 
   .writing-toggle { left: 16px; }
@@ -1460,6 +1465,8 @@ html[data-loader="on"] .preloader {
     position: fixed; z-index: 120; top: 50%; left: 12px; transform: translateY(-50%);
     display: flex; flex-direction: column; pointer-events: none;
   }
+  /* In a project modal: inside the sheet, clear of its edge (the sheet is its containing block) */
+  .modal-panel .page-nav { position: absolute; left: 28px; }
   .page-nav::before {
     content: ""; position: absolute; z-index: -1; inset: -10px -6px -10px -8px; border-radius: 12px;
     background: var(--frost); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4);
@@ -1525,4 +1532,56 @@ html[data-loader="on"] .preloader {
   .ab-carousel { overflow-x: auto; scrollbar-width: none; }
   .ab-carousel-track { animation: none; }
   .page-nav::before, .page-nav a, .page-nav .tick, .page-nav .fill, .page-nav .pn-name { animation: none; transition: none; }
+}
+
+/* =========================================================================
+   Story layout for a project (ChippStory; after robwinters.github.io/portfolio): a 960px column —
+   a 240px meta / label column on the left, a 640px reading column beside it — and the work running
+   wide beneath each part. The section nav (SectionNav) sits at the left edge.
+   ========================================================================= */
+.story-page { --meta: 240px; --measure: 640px; max-width: 960px; margin: 0 auto; color: #1D344A; }
+.story-page :is(p, h1, h2, h3) { margin: 0 !important; }
+.sp-section { display: flex; flex-direction: column; gap: 56px; padding: 40px 0 112px; }
+.sp-section + .sp-section { padding-top: 24px; }
+.sp-row { display: flex; }
+.sp-meta { width: var(--meta); flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-right: 32px; box-sizing: border-box; }
+.story-page .sp-meta h1 { font-family: var(--sans); font-size: 15px; line-height: 30px; font-weight: 600; }
+.sp-meta p { font-size: 13px; line-height: 20px; color: rgb(29 52 74 / .6); }
+.sp-meta p span { display: block; white-space: pre-line; }   /* a role can run over lines (Chipp: ↳ Head of Design) */
+.sp-text { width: var(--measure); max-width: 100%; display: flex; flex-direction: column; gap: 24px; }
+.sp-lead { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 40px; }
+.sp-body { font-size: 18px; line-height: 30px; color: rgb(29 52 74 / .8); }
+.sp-role { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; }
+.sp-role p { font-size: 18px; line-height: 30px; }
+.sp-role b { font-weight: 400; color: #F8651B; }
+.story-page .sp-label { font-family: var(--sans); font-size: 13px; line-height: 30px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: rgb(29 52 74 / .6); }
+.sp-role .sp-label { line-height: 20px; }
+/* "Highlight": a hand-drawn highlighter stroke behind the label */
+.sp-marker { position: relative; isolation: isolate; color: #1D344A; }
+.sp-marker::before {
+  content: ""; position: absolute; z-index: -1; inset: -1px -6px -1px -5px; transform: rotate(-1.2deg);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M3 4.5C22 3 55 4.2 97.5 2.8c1.2 3.5 1.6 9 .6 13.4C70 17.6 33 16.6 1.6 17.6.4 13.4.6 8.6 3 4.5z' fill='%23ffe66b'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+/* The work: wider than the reading column, up to 1200px */
+.sp-wide { --wide: clamp(100%, 100vw - 96px, 1200px); width: var(--wide); margin: 0 0 0 calc((100% - var(--wide)) / 2); }
+.sp-wide > .cover-scene, .sp-wide > :is(img, video) { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; border-radius: 8px; overflow: hidden; object-fit: cover; }
+/* Next project */
+.sp-next { display: flex; flex-direction: column; gap: 4px; padding: 40px 0 0 var(--meta); border-top: 1px solid rgb(29 52 74 / .12); color: #1D344A; text-decoration: none; }
+.sp-next-title { font-family: var(--serif); font-size: 40px; line-height: 1.1; transition: color .2s ease; }
+.sp-next-title span { display: inline-block; transition: translate .3s cubic-bezier(.22, 1, .36, 1); }
+.sp-next:hover .sp-next-title { color: #F8651B; }
+.sp-next:hover .sp-next-title span { translate: 6px 0; }
+.modal-body:has(.story-page) { max-width: none; }
+.modal-body .sp-section:first-of-type { padding-top: 0; }   /* the intro's top edge sits right at 25vh */
+@media (max-width: 940px) {
+  .sp-row { flex-direction: column; gap: 16px; }
+  .sp-meta { width: auto; }
+  .sp-meta p span { display: inline; }
+  .sp-meta p span + span::before { content: " · "; }
+  .sp-section { gap: 32px; padding: 24px 0 72px; }
+  .sp-lead { font-size: 24px; line-height: 32px; }
+  .sp-body, .sp-role p { font-size: 17px; line-height: 28px; }
+  .sp-wide { width: 100%; margin: 0; }
+  .sp-next { padding-left: 0; }
+  .sp-next-title { font-size: 32px; }
 }

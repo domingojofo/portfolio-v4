@@ -41,7 +41,7 @@ export function Cover({ cover, sizes, eager = false, live = true, deck = false }
     );
   }
   if (cover.video) {
-    return (
+    const video = (
       <video
         className="cover-video"
         src={cover.video}
@@ -55,6 +55,17 @@ export function Cover({ cover, sizes, eager = false, live = true, deck = false }
         playsInline
         preload={eager ? "auto" : "metadata"}
       />
+    );
+    if (!(deck && cover.badges?.length)) return video;
+    // On the home page's card, its badges sit over the video in the bottom corners
+    return (
+      <span className="cover-badged">
+        {video}
+        {cover.badges.map((b) => (
+          // eslint-disable-next-line @next/next/no-img-element -- small static SVGs
+          <img key={b.src} className={`cover-badge is-${b.at}`} src={b.src} width={b.width} height={b.height} alt={b.alt} />
+        ))}
+      </span>
     );
   }
   return (

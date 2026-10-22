@@ -1,15 +1,21 @@
-/* Anchorage cover (AnchorageScene.tsx): The Creation of Adam fills the box; the app rises from the
-   bottom, large, running off the left and bottom with room on the right — in a browser window (wide boxes) or a phone (narrow ones). The app's
+/* Anchorage cover (AnchorageScene.tsx): The Creation of Adam fills the box; the app sits on it
+   in a browser window (wide boxes) or a phone (narrow ones). The app's
    screen is scaled to the window by --ans-s; .ans-cam is the camera the app zooms. */
-.ans { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: #9aa9bf; }
+.ans { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: #9aa9bf; container-type: size; }
 .ans-bg { object-fit: cover; object-position: 50% 42%; }
 
 .ans-window, .ans-phone { position: absolute; overflow: hidden; background: #000; }
+/* Desktop: a browser window in the middle of the card, 75% of its width — the app inside at laptop
+   size, shifted left (--ans-x) so only its right side shows */
 .ans-window {
-  right: 8%; top: 34%; width: 129%;   /* 1.5×, running off the left and bottom: the chart side shows, with room on the right */
-  border-radius: 0 12px 0 0;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / .28), 18px -10px 50px rgb(10 20 40 / .35);
+  left: 50%; top: 50%; translate: -50% -50%;
+  width: min(75cqw, (88cqh - 26px) * 900 / 820);   /* 75% wide, unless that's too tall for the box (wide covers) */
+  border-radius: 12px; background: #F4F4F2;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / .4), 0 24px 60px rgb(10 20 40 / .32);
 }
+.ans-chrome { display: flex; gap: 6px; align-items: center; height: 26px; padding: 0 12px; background: #F4F4F2; }
+.ans-chrome i { width: 9px; height: 9px; border-radius: 50%; background: rgb(29 52 74 / .18); }
+.ans-phone { position: absolute; overflow: hidden; background: #000; }
 .ans-phone {
   right: 9%; top: 34%; width: 80%;   /* the whole phone width shows, set right of centre: room on the right */
   border: 5px solid #0d0d0f; border-bottom: 0;
@@ -17,15 +23,16 @@
   box-shadow: 0 0 0 1px rgb(255 255 255 / .3), 0 -10px 40px rgb(10 20 40 / .35);
 }
 .ans-screen { position: relative; display: block; overflow: hidden; }
-.ans-window .ans-screen { aspect-ratio: 1440 / 900; }
+.ans-window .ans-screen { aspect-ratio: 900 / 820; background: #000; }   /* the app's right 900px, top 820px */
 .ans-phone .ans-screen { aspect-ratio: 390 / 844; border-radius: 0 25px 0 0; }
 .ans-cam {
   position: absolute; inset: 0;
   transition: transform 1.1s cubic-bezier(.65, 0, .35, 1);
 }
 .ans-cam iframe {
-  position: absolute; left: 0; top: 0;
+  position: absolute; left: var(--ans-x, 0); top: 0;
   border: 0;
   transform: scale(var(--ans-s, 0)); transform-origin: 0 0;
   pointer-events: none;
+  transition: left 1.1s cubic-bezier(.65, 0, .35, 1);   /* the pan to the donut and back */
 }

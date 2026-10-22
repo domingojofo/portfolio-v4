@@ -97,6 +97,18 @@ export function ChippRow() {
   );
 }
 
+// The brand playbook, with its 2025 RGD Branding Awards win
+export function ChippAwardCard() {
+  const { ref, shown } = useReveal<HTMLDivElement>();
+  return (
+    <div ref={ref} className={`chipp-card chipp-features${shown ? " is-in" : ""}`}>
+      <Image src="/demos/chipp/brand-award.jpg" width={2400} height={1376}
+        alt="Chipp brand playbook pages with the 2025 RGD Branding Awards winner badge"
+        sizes="(max-width: 1536px) calc(100vw - 96px), 1440px" />
+    </div>
+  );
+}
+
 // 1050×572 feature board (usage insights, actions, model picker, branding…)
 export function ChippFeaturesCard() {
   const { ref, shown } = useReveal<HTMLDivElement>();
