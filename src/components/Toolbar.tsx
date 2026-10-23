@@ -43,16 +43,15 @@ export function Toolbar() {
     return () => { removeEventListener("pointerdown", onDown); removeEventListener("keydown", onKey); };
   }, [linksOpen]);
 
-  // Hey: away until the first scroll, and again once the footer is in view
+  // Away once the footer is in view (any page), and on Hey until the first scroll too
   useEffect(() => {
     const root = document.documentElement;
-    if (pathname !== "/") { root.classList.remove("nav-away"); return; }
     let raf = 0;
     const check = () => {
       raf = 0;
-      const footer = document.querySelector(".closing")?.getBoundingClientRect();
+      const footer = document.querySelector(".closing, .sf")?.getBoundingClientRect();
       const atFooter = !!footer && footer.top < innerHeight * 0.5;
-      root.classList.toggle("nav-away", scrollY < 8 || atFooter);
+      root.classList.toggle("nav-away", (pathname === "/" && scrollY < 8) || atFooter);
       if (atFooter) setLinksOpen(false);
     };
     const kick = () => { if (!raf) raf = requestAnimationFrame(check); };

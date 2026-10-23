@@ -1,3 +1,4 @@
+import { SiteFooter } from "@/components/SiteFooter";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { AboutNav } from "@/components/about/AboutNav";
@@ -42,6 +43,7 @@ const TALKS = [
 
 export default function AboutPage() {
   return (
+    <>
     <main className="ab">
       <span className="ab-origin" data-board="30" aria-hidden="true" />
       <BoardSnap />
@@ -142,5 +144,7 @@ export default function AboutPage() {
         </div>
       </section>
     </main>
+    <SiteFooter />
+    </>
   );
 }

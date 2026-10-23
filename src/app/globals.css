@@ -358,6 +358,101 @@ html:not(.deck-reached) .marquee { opacity: 0; }
    edge. The words are 1.3× the frame's: "Relentlessly" to the right, "Collaborative" resting on
    the bottom.
    ========================================================================= */
+/* =========================================================================
+   Footer (SiteFooter.tsx) — Figma 775:35903 (1570 × 684). Navy. The pitch and the link columns on
+   the left in their own px; the art (the cursor hand and the marble hand, each at its angle) laid
+   out in frame px from the right edge, scaled by --u; the highlights ticker along the bottom.
+   ========================================================================= */
+.sf {
+  --u: clamp(.6px, 100vw / 1570, 1.2px);
+  position: relative; overflow: clip;
+  background: #0A141E; color: #fff;
+}
+.sf-main { position: relative; min-height: max(560px, calc(617 * var(--u))); padding: 59px 66px 72px; box-sizing: border-box; }
+.sf p, .sf ul, .sf h2 { margin: 0 !important; padding: 0; }
+.sf ul { list-style: none; }
+
+/* Art: each piece's centre at its frame point, measured from the frame's right edge (x 1570). The
+   cursor hand is FooterFlock's canvas, over the whole box (its cursors placed the same way). */
+.sf-inner { position: relative; will-change: transform; }
+.sf-art { position: absolute; inset: 0; pointer-events: none; }
+.sf-flock { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sf-hand { position: absolute; translate: -50% -50%; }
+.sf-hand {   /* the marble hand: a 720 × 397 crop, turned 34.46° */
+  left: calc(100% + (1434.64 - 1570) * var(--u)); top: calc(385.89 * var(--u));   /* box 1025, 18, 819 × 735 */
+  width: calc(719.945 * var(--u)); height: calc(397.479 * var(--u));
+  rotate: 34.46deg; overflow: hidden;
+}
+.sf-hand img { position: absolute; left: -86.34%; top: -81.58%; width: 181.08%; height: 213.02%; max-width: none; }
+
+/* The pitch */
+.sf-pitch { position: relative; display: flex; flex-direction: column; gap: 24px; align-items: flex-start; }
+.sf-title { display: flex; flex-direction: column; font-family: var(--sans); font-weight: 200; font-size: 64px; line-height: normal; letter-spacing: -.04em; color: #fff; }
+.sf-line { white-space: nowrap; }
+.sf-title em { font-family: var(--serif); font-style: italic; font-weight: 200; color: #D8D8D1; }
+.sf-ctas { display: flex; flex-wrap: wrap; gap: 24px; }
+.sf-btn {
+  display: inline-flex; align-items: center; padding: 12px 16px; border-radius: 6px;
+  border: 1px solid rgb(251 251 251 / .6); border-bottom-width: 2px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / .2), inset 0 1px 1px rgb(255 255 255 / .2);
+  font-family: var(--sans); font-weight: 600; font-size: 16px; line-height: 20px; white-space: nowrap;
+  color: #D9D9D2; text-decoration: none;
+  transition: translate .12s ease, background-color .2s ease, color .2s ease;
+}
+.sf-btn.is-solid { background: #D9D9D2; color: #0A141E; }
+.sf-btn:hover { translate: 0 1px; }
+.sf-btn:not(.is-solid):hover { background: rgb(217 217 210 / .08); }
+.sf-btn:focus-visible, .sf-cols a:focus-visible { outline: 2px solid #D9D9D2; outline-offset: 3px; }
+
+/* The link columns */
+.sf-cols { position: relative; display: flex; gap: 100px; margin-top: 116px; padding-left: 9px; }
+.sf-col { display: flex; flex-direction: column; gap: 16px; }
+.sf-label { font-family: var(--sans); font-weight: 200; font-size: 14px; line-height: normal; letter-spacing: -.04em; text-transform: uppercase; color: rgb(255 255 255 / .5); }
+.sf-col ul { display: flex; flex-direction: column; gap: 8px; }
+.sf-col a, .sf-soon { font-family: var(--sans); font-weight: 400; font-size: 20px; line-height: normal; letter-spacing: -.04em; color: #fff; white-space: nowrap; }
+.sf-col a { text-decoration: underline; text-decoration-color: transparent; text-underline-position: from-font; transition: text-decoration-color .2s ease; }
+.sf-col a:hover { text-decoration-color: currentColor; }
+.sf-soon { display: inline-flex; align-items: baseline; gap: 8px; color: rgb(255 255 255 / .4); }
+.sf-soon small { font-size: 12px; font-weight: 300; letter-spacing: .04em; text-transform: uppercase; color: rgb(255 255 255 / .4); }
+
+/* Its way in (.is-in, FooterReveal): the hand slides in toward the cursors, the lines rise one after
+   another, then the buttons, then the links column by column; the cursors stream in (FooterFlock) */
+.sf-hand img { transition: opacity 1.2s cubic-bezier(.22, 1, .36, 1), translate 1.4s cubic-bezier(.22, 1, .36, 1), filter 1.2s ease; }
+.sf:not(.is-in) .sf-hand img { opacity: 0; translate: calc(90 * var(--u)) calc(-30 * var(--u)); filter: blur(12px); }
+.sf-line, .sf-ctas, .sf-label, .sf-col li { transition: opacity .8s cubic-bezier(.22, 1, .36, 1), translate .9s cubic-bezier(.22, 1, .36, 1); }
+.sf:not(.is-in) :is(.sf-line, .sf-ctas, .sf-label, .sf-col li) { opacity: 0; translate: 0 24px; }
+.sf-line { display: block; }
+.sf-line:nth-child(2) { transition-delay: .1s; }
+.sf-ctas { transition-delay: .25s; }
+.sf-col .sf-label { transition-delay: calc(.35s + var(--c, 0) * .08s); }
+.sf-col li { transition-delay: calc(.42s + var(--c, 0) * .08s + var(--i, 0) * .05s); }
+.sf-col:nth-child(2) { --c: 1; }
+.sf-col:nth-child(3) { --c: 2; }
+.sf-col li:nth-child(2) { --i: 1; } .sf-col li:nth-child(3) { --i: 2; } .sf-col li:nth-child(4) { --i: 3; } .sf-col li:nth-child(5) { --i: 4; }
+.sf .marquee { transition: opacity 1s ease .6s; }
+.sf:not(.is-in) .marquee.marquee { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .sf .sf-hand img, .sf :is(.sf-line, .sf-ctas, .sf-label, .sf-col li), .sf .marquee { transition: none; }
+}
+
+/* The ticker, here: in the flow, along the bottom (Figma: 66 high, a hairline above, Gelica 24) */
+.sf .marquee.marquee {
+  position: relative; bottom: auto; z-index: 1; margin: 0; height: 66px; padding: 0;
+  border-top: 1px solid rgb(170 172 177 / .4); background: #0A141E; opacity: 1;
+}
+.sf .marquee-group span { font-size: 24px; line-height: .9; }
+
+@media (max-width: 1023px) {
+  /* Stacked: the art across the top, the pitch under it, the columns in two */
+  .sf { --u: min(100vw / 1000, .5px); }
+  .sf-main { min-height: 0; padding: calc(600 * var(--u)) 20px 56px; }
+  .sf-title { font-size: min(64px, 11.5vw); }
+  .sf-ctas { gap: 12px; }
+  .sf-cols { flex-wrap: wrap; gap: 40px 48px; margin-top: 64px; padding-left: 0; }
+  .sf-col a, .sf-soon { font-size: 18px; }
+  .sf .marquee-group span { font-size: 20px; }
+}
+
 /* "You're in" (YoureIn.tsx), after neutomni.com: the screen holds (sticky stage) while a gradient
    rises from the bottom and spreads; the words are the paper's colour, so they show only where it
    has reached behind them. --p (0–1, set on scroll) runs through the section; --g is the glow's
