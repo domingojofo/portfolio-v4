@@ -12,7 +12,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/design", destination: "/", permanent: false },
-      // Writing is hidden for now
+      // Reading, Writing and the OAMO project are hidden for now
+      { source: "/reading", destination: "/", permanent: false },
+      { source: "/design/oamo", destination: "/", permanent: false },
       { source: "/writing", destination: "/", permanent: false },
       { source: "/writing/:slug*", destination: "/", permanent: false },
     ];

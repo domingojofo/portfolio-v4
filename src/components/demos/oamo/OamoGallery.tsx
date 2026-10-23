@@ -129,17 +129,23 @@ function Profile() {
     <figure className="ob-tile ob-profile" style={{ "--fw": 239, "--fh": 191 } as React.CSSProperties}>
       <img className="ob-bg ob-bg-bigsur" src={`${dir}/bg-big-sur.png`} alt="" />
       <div className="ob-pcard">
-        <span className="ob-pbanner"><img src={`${dir}/profile-banner.jpg`} alt="" /></span>
+        <span className="ob-pbanner">
+          <img src={`${dir}/profile-banner.jpg`} alt="" />
+          <span className="ob-welcome">WELCOME TO<img src={`${dir}/oamo-wordmark.png`} alt="Oamo" /></span>
+        </span>
         <div className="ob-pbody">
-          <p className="ob-welcome">WELCOME TO <img src={`${dir}/oamo-wordmark.png`} alt="Oamo" /></p>
-          <p className="ob-ptitle">Create your profile</p>
-          <p className="ob-ptext">
-            Your Oamo Profile combines and secures all your online activity, allowing you to match with your favorite
-            brands and unlock exclusive offers. <b>Learn more</b>
-          </p>
-          <p className="ob-agree"><span className="ob-check" aria-hidden />I agree to the <u>terms &amp; conditions</u></p>
-          <span className="ob-go">Let’s go</span>
-          <p className="ob-time"><span aria-hidden>◷</span> It takes up to 2 minutes to create your profile</p>
+          <div className="ob-pcopy">
+            <p className="ob-ptitle">Create your profile</p>
+            <p className="ob-ptext">
+              Your Oamo Profile combines and secures all your online activity, allowing you to match with your favorite
+              brands and unlock exclusive offers. <b>Learn more</b>
+            </p>
+          </div>
+          <div className="ob-pactions">
+            <p className="ob-agree"><img className="ob-check" src={`${dir}/checkbox.svg`} alt="" /><span>I agree to the <u>terms &amp; conditions</u></span></p>
+            <span className="ob-go">Let’s go</span>
+            <p className="ob-time"><img src={`${dir}/time-circle.svg`} alt="" /><span>It takes up to 2 minutes to create your profile</span></p>
+          </div>
         </div>
       </div>
     </figure>

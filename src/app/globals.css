@@ -51,6 +51,7 @@ a { color: inherit; }
 /* The dots wait for the hero intro: hidden while the headline animates in, then a slow fade */
 .dot-grid { transition: opacity 1.6s ease .15s; }
 html[data-intro="playing"] .dot-grid { opacity: 0; transition: none; }
+.dot-grid { display: none; }   /* hidden for now — delete this line to bring the dots back */
 
 /* Paper grain: fixed behind the whole page, so it doesn't zoom with the hero or scroll with content.
    It sits over the dot grid, so the dots pick up the same printed texture. */
@@ -357,6 +358,40 @@ html:not(.deck-reached) .marquee { opacity: 0; }
    edge. The words are 1.3× the frame's: "Relentlessly" to the right, "Collaborative" resting on
    the bottom.
    ========================================================================= */
+/* "You're in" (YoureIn.tsx), after neutomni.com: the screen holds (sticky stage) while a gradient
+   rises from the bottom and spreads; the words are the paper's colour, so they show only where it
+   has reached behind them. --p (0–1, set on scroll) runs through the section; --g is the glow's
+   growth while the stage holds, --out its fade before the section scrolls off onto the footer. */
+.yi {
+  /* While the stage holds (--p ≈ .27–1): the glow rises until it fills the screen (.27–.72), holds,
+     then fades away (.8–.93) — all before the stage lets go and the footer comes up */
+  --g: clamp(0, calc((var(--p, 0) - .27) / .45), 1);
+  --out: clamp(0, calc((.93 - var(--p, 0)) / .13), 1);
+  position: relative; height: 340svh; }   /* no background: the page's paper and dots show through */
+.yi-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; display: grid; place-items: center; }
+.yi-glow {
+  position: absolute; left: 50%; bottom: 0; width: 180vw; height: 160svh;
+  translate: -50% 50%;   /* its centre on the bottom edge: it rises from there */
+  scale: calc(.12 + 2.1 * var(--g));   /* up to past the top of the screen */
+  opacity: min(clamp(0, calc(var(--g) * 4), 1), var(--out));
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #1D344A 0%, #2B5079 38%, #5F8AB5 62%, #A9C2DA 82%, rgb(217 217 210 / 0) 100%);
+  will-change: scale;
+}
+.yi-words {
+  position: relative; margin: 0; display: flex; flex-direction: column; align-items: center;
+  color: var(--stage); text-align: center;
+  translate: 0 calc((1 - var(--g)) * 6svh);   /* drifts up a touch as it's uncovered */
+  opacity: min(clamp(0, calc(var(--g) * 3), 1), var(--out));   /* never left on bare paper (its texture would show it) */
+}
+.yi-sans { font-family: var(--sans); font-weight: 400; font-size: 96px; line-height: 1.05; letter-spacing: -.02em; }
+.yi-serif { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 128px; line-height: 1.05; letter-spacing: -.02em; }
+@media (max-width: 1023px) {
+  .yi { height: 300svh; }
+  .yi-sans { font-size: min(96px, 12vw); }
+  .yi-serif { font-size: min(128px, 15.5vw); }
+}
+
 .closing {
   --u: min(100vw / 1440, (95svh - var(--tk-h) / 2) / 1094);
   position: relative; color: #1D344A; overflow: clip;

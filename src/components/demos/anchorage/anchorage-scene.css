@@ -23,7 +23,10 @@
   box-shadow: 0 0 0 1px rgb(255 255 255 / .3), 0 -10px 40px rgb(10 20 40 / .35);
 }
 .ans-screen { position: relative; display: block; overflow: hidden; }
-.ans-window .ans-screen { aspect-ratio: 900 / 820; background: #000; }   /* the app's right 900px, top 820px */
+.ans-window .ans-screen { aspect-ratio: 900 / 820; background: #000; }
+/* A project's own hero (data-wide): the whole app, laptop-shaped, centred with room either side */
+.ans[data-wide] .ans-window { width: min(86cqw, (88cqh - 26px) * 1440 / 900); }
+.ans[data-wide] .ans-window .ans-screen { aspect-ratio: 1440 / 900; }   /* the app's right 900px, top 820px */
 .ans-phone .ans-screen { aspect-ratio: 390 / 844; border-radius: 32px 32px 0 0; }
 .ans-cam {
   position: absolute; inset: 0;

@@ -27,7 +27,8 @@ const PHONE_BELOW = 520;   // px wide: below this, the phone
 // The tour, or with reduced motion the app as a still (only called once mounted: the iframe waits for `near`)
 const appSrc = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? APP : `${APP}?autoplay`);
 
-export function AnchorageScene({ live = true }: { live?: boolean }) {
+// `wide`: a project's own hero (full width): the whole app in a laptop-shaped window, nothing cropped
+export function AnchorageScene({ live = true, wide = false }: { live?: boolean; wide?: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const camRef = useRef<HTMLSpanElement>(null);
@@ -47,7 +48,7 @@ export function AnchorageScene({ live = true }: { live?: boolean }) {
       setMode(m);
       const screen = el.querySelector<HTMLElement>(".ans-screen");
       if (screen) {
-        view.current = viewW(m, screen.clientWidth);
+        view.current = wide && m === "desktop" ? SCREENS.desktop.w : viewW(m, screen.clientWidth);
         scale.current = screen.clientWidth / view.current;
         el.style.setProperty("--ans-s", String(scale.current));
         el.style.setProperty("--ans-x", `${-(pan.current ?? cropX(m)) * scale.current}px`);
@@ -55,7 +56,7 @@ export function AnchorageScene({ live = true }: { live?: boolean }) {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [mode]);
+  }, [mode, wide]);
 
   // Load the app once the card is close to the viewport; play while it's on screen
   useEffect(() => {
@@ -100,7 +101,7 @@ export function AnchorageScene({ live = true }: { live?: boolean }) {
 
   const screen = mode ? SCREENS[mode] : null;
   return (
-    <span className="ans" ref={ref} data-mode={mode ?? undefined} aria-hidden>
+    <span className="ans" ref={ref} data-mode={mode ?? undefined} data-wide={wide || undefined} aria-hidden>
       <Image className="ans-bg" src="/images/anchorage-creation.jpg" alt="" fill sizes="(max-width: 1023px) 100vw, 980px" />
       {screen && (
         <span className={mode === "phone" ? "ans-phone" : "ans-window"}>

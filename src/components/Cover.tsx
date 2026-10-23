@@ -14,7 +14,7 @@ export function Cover({ cover, sizes, eager = false, live = true, deck = false }
   if (cover.scene === "anchorage") {
     return (
       <span className="cover-scene" role="img" aria-label={cover.alt}>
-        <AnchorageScene live={live} />
+        <AnchorageScene live={live} wide={!deck} />
       </span>
     );
   }

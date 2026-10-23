@@ -29,12 +29,14 @@ export type Project = {
   year: string;
   role: string;
   cover: Cover;
+  /** Left out of the deck, the next-project links and the routes for now */
+  hidden?: boolean;
   /** Four thumbnails that float around the deck while this project is in front (two left, two right) */
   gallery?: (Img & { label: string })[];
 };
 
 // Placeholder copy and imagery until the real case studies are in
-export const projects: Project[] = [
+const allProjects: Project[] = [
   {
     slug: "anchorage",
     title: "Anchorage Digital",
@@ -90,6 +92,7 @@ export const projects: Project[] = [
   {
     // Details to come
     slug: "oamo",
+    hidden: true,   // its cover is being reworked
     title: "OAMO",
     short: "OAMO",
     logo: { src: "/images/logos/oamo.svg", width: 135, height: 24 },
@@ -143,6 +146,9 @@ export const projects: Project[] = [
     ],
   },
 ];
+
+/** The projects on the site, in deck order (hidden ones left out) */
+export const projects = allProjects.filter((p) => !p.hidden);
 
 export function getProject(slug: string) {
   return projects.find((p) => p.slug === slug);
