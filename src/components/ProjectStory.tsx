@@ -39,7 +39,7 @@ export function ProjectStory({ project, headingId, lead, body, role, cover, part
   const introId = `${project.slug}-intro`;
 
   return (
-    <article className="story-page">
+    <article className="story-page" data-project={project.slug}>
       <SectionNav sections={[{ id: introId, label: "Intro" }, ...parts.map((p) => ({ id: p.id, label: p.nav }))]} />
 
       <section id={introId} className="sp-section">

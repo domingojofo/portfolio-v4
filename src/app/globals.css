@@ -1707,6 +1707,13 @@ html[data-loader="on"] .preloader {
 .sp-next:hover .sp-next-title { color: #F8651B; }
 .sp-next:hover .sp-next-title span { translate: 6px 0; }
 .modal-body:has(.story-page) { max-width: none; }
+/* Anchorage: square corners on every image and card, and everything closer together */
+.story-page[data-project="anchorage"] :is(.sp-wide, .sp-wide > *, .sp-wide > .project-row > div, .sp-wide > .project-row > div > *, .sp-wide > .cover-scene > .ans) { border-radius: 0 !important; }   /* the images and cards, not the UI drawn in them */
+.story-page[data-project="anchorage"] .sp-section { gap: 32px; padding-bottom: 32px; }
+.story-page[data-project="anchorage"] .sp-section + .sp-section { padding-top: 0; }
+.story-page[data-project="anchorage"] .sp-text { gap: 16px; }
+.story-page[data-project="anchorage"] .project-row { gap: 16px; }
+.story-page[data-project="anchorage"] .sp-next { margin-top: 32px; }
 .modal-body .sp-section:first-of-type { padding-top: 0; }   /* the intro's top edge sits right at 25vh */
 @media (max-width: 940px) {
   .sp-row { flex-direction: column; gap: 16px; }

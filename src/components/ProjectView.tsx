@@ -20,7 +20,7 @@ export function ProjectView({ project, headingId }: { project: Project; headingI
     return (
       <ProjectStory {...base} parts={[
         {
-          id: "anchorage-td", nav: "Trusted Destinations", label: "Trusted Destinations",
+          id: "anchorage-td", nav: "Trusted Destinations",   // just the work under the cover: no text
           work: [
             <div key="td" className="project-row">
               <div><TrustedDestinationsCard /></div>
@@ -28,7 +28,7 @@ export function ProjectView({ project, headingId }: { project: Project; headingI
             </div>,
           ],
         },
-        { id: "anchorage-va", nav: "Virtual accounts", label: "Virtual accounts", work: [<VirtualAccountsCard key="va" />] },
+        { id: "anchorage-va", nav: "Virtual accounts", work: [<VirtualAccountsCard key="va" />] },
       ]} />
     );
   }
