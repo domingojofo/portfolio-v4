@@ -369,6 +369,12 @@ html:not(.deck-reached) .marquee { opacity: 0; }
   background: #0A141E; color: #fff;
 }
 .sf-main { position: relative; min-height: max(560px, calc(617 * var(--u))); padding: 59px 66px 72px; box-sizing: border-box; }
+/* Web: the footer fills the screen — the main part takes what the ticker (66px) leaves, the pitch at
+   the top and the link columns pushed to the bottom */
+@media (min-width: 1024px) {
+  .sf-main { display: flex; flex-direction: column; min-height: max(560px, calc(100svh - 66px)); }
+  .sf-main .sf-cols { margin-top: auto; padding-top: 72px; }
+}
 .sf p, .sf ul, .sf h2 { margin: 0 !important; padding: 0; }
 .sf ul { list-style: none; }
 
